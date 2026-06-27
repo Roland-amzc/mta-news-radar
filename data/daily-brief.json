@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-27T11:54:32.478437Z",
+  "generated_at": "2026-06-27T13:43:24.331753Z",
   "window_hours": 24,
   "total_items": 20,
   "items": [
@@ -64,18 +64,9 @@
           "source_name": "AI HubToday",
           "site_id": "aihubtoday",
           "published_at": null
-        },
-        {
-          "id": "824f0f509ce20da72a0233cba1dacb92a8cab532",
-          "title": "点击这里进入 / Click here to enter",
-          "url": "http://ai.hubtoday.app/?tr_uuid=20260626-2311-5092-8d48-6b975f7750cd&fp=-3",
-          "source": "Page Fallback",
-          "source_name": "AI HubToday",
-          "site_id": "aihubtoday",
-          "published_at": null
         }
       ],
-      "source_count": 7,
+      "source_count": 6,
       "source_names": [
         "Page Fallback"
       ],
@@ -133,28 +124,19 @@
           "source_name": "AI HubToday",
           "site_id": "aihubtoday",
           "published_at": null
-        },
-        {
-          "id": "824f0f509ce20da72a0233cba1dacb92a8cab532",
-          "title": "点击这里进入 / Click here to enter",
-          "url": "http://ai.hubtoday.app/?tr_uuid=20260626-2311-5092-8d48-6b975f7750cd&fp=-3",
-          "source": "Page Fallback",
-          "source_name": "AI HubToday",
-          "site_id": "aihubtoday",
-          "published_at": null
         }
       ],
-      "item_count": 7,
-      "duplicate_count": 7,
-      "score": 0.8394,
-      "importance": 0.8394,
-      "importance_score": 0.8394,
+      "item_count": 6,
+      "duplicate_count": 6,
+      "score": 0.8355,
+      "importance": 0.8355,
+      "importance_score": 0.8355,
       "importance_label": "多源热议",
       "importance_breakdown": {
         "editorial": 0.72,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.8435,
+        "recency": 0.8217,
         "story_heat": 1.0
       },
       "category": "multi_source",
@@ -163,7 +145,7 @@
         "high_ai_relevance",
         "high_importance"
       ],
-      "earliest_at": "2026-06-26T13:11:22.078140Z",
+      "earliest_at": "2026-06-26T15:38:40.006875Z",
       "latest_at": "2026-06-27T00:07:29.469364Z",
       "primary_item": {
         "id": "1a3728283570a1e29361ad760b6a6db12750e731",
@@ -246,15 +228,15 @@
       ],
       "item_count": 3,
       "duplicate_count": 3,
-      "score": 0.8168,
-      "importance": 0.8168,
-      "importance_score": 0.8168,
+      "score": 0.8131,
+      "importance": 0.8131,
+      "importance_score": 0.8131,
       "importance_label": "多源热议",
       "importance_breakdown": {
         "editorial": 0.84,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.7957,
+        "recency": 0.7751,
         "story_heat": 0.5
       },
       "category": "multi_source",
@@ -308,15 +290,15 @@
       ],
       "item_count": 1,
       "duplicate_count": 1,
-      "score": 0.809,
-      "importance": 0.809,
-      "importance_score": 0.809,
+      "score": 0.8052,
+      "importance": 0.8052,
+      "importance_score": 0.8052,
       "importance_label": "官方更新",
       "importance_breakdown": {
         "editorial": 0.9,
         "source_tier": 1.0,
         "ai_relevance": 0.87,
-        "recency": 0.8053,
+        "recency": 0.7845,
         "story_heat": 0.0
       },
       "category": "official",
@@ -333,6 +315,87 @@
         "url": "https://github.blog/changelog/2026-06-26-track-total-merges-by-adoption-phase-in-enterprise-and-organization-reports",
         "source": "GitHub Changelog",
         "source_name": "Official AI Updates"
+      }
+    },
+    {
+      "story_id": "story_cc2911dc8ae6",
+      "title": "\"Raise Us\"启动：前美商务部长与四州合作筹集10亿美元应对AI就业冲击",
+      "url": "https://the-decoder.com/the-companies-most-likely-to-automate-your-job-are-now-funding-a-1-billion-program-to-retrain-you",
+      "primary_url": "https://the-decoder.com/the-companies-most-likely-to-automate-your-job-are-now-funding-a-1-billion-program-to-retrain-you",
+      "source": "The Decoder：AI News（RSS）",
+      "source_name": "AI HOT",
+      "sources": [
+        {
+          "id": "e16b5833bc344fb3836c52dcfca0e89fba3000b8",
+          "title": "\"Raise Us\"启动：前美商务部长与四州合作筹集10亿美元应对AI就业冲击",
+          "url": "https://the-decoder.com/the-companies-most-likely-to-automate-your-job-are-now-funding-a-1-billion-program-to-retrain-you",
+          "source": "The Decoder：AI News（RSS）",
+          "source_name": "AI HOT",
+          "site_id": "aihot",
+          "published_at": "2026-06-27T12:25:21Z"
+        },
+        {
+          "id": "dbfe8cc9a7e16a5a175622e0e4579bed860f5dd8",
+          "title": "\"Raise Us\"启动：前美商务部长与四州合作筹集10亿美元应对AI就业冲击 / The companies most likely to automate your job are now funding a $1 billion program to retrain you",
+          "url": "https://the-decoder.com/the-companies-most-likely-to-automate-your-job-are-now-funding-a-1-billion-program-to-retrain-you",
+          "source": "The Decoder AI News",
+          "source_name": "Curated Media",
+          "site_id": "curated_media",
+          "published_at": "2026-06-27T12:25:21Z"
+        }
+      ],
+      "source_count": 2,
+      "source_names": [
+        "The Decoder AI News",
+        "The Decoder：AI News（RSS）"
+      ],
+      "items": [
+        {
+          "id": "e16b5833bc344fb3836c52dcfca0e89fba3000b8",
+          "title": "\"Raise Us\"启动：前美商务部长与四州合作筹集10亿美元应对AI就业冲击",
+          "url": "https://the-decoder.com/the-companies-most-likely-to-automate-your-job-are-now-funding-a-1-billion-program-to-retrain-you",
+          "source": "The Decoder：AI News（RSS）",
+          "source_name": "AI HOT",
+          "site_id": "aihot",
+          "published_at": "2026-06-27T12:25:21Z"
+        },
+        {
+          "id": "dbfe8cc9a7e16a5a175622e0e4579bed860f5dd8",
+          "title": "\"Raise Us\"启动：前美商务部长与四州合作筹集10亿美元应对AI就业冲击 / The companies most likely to automate your job are now funding a $1 billion program to retrain you",
+          "url": "https://the-decoder.com/the-companies-most-likely-to-automate-your-job-are-now-funding-a-1-billion-program-to-retrain-you",
+          "source": "The Decoder AI News",
+          "source_name": "Curated Media",
+          "site_id": "curated_media",
+          "published_at": "2026-06-27T12:25:21Z"
+        }
+      ],
+      "item_count": 2,
+      "duplicate_count": 2,
+      "score": 0.7833,
+      "importance": 0.7833,
+      "importance_score": 0.7833,
+      "importance_label": "行业动态",
+      "importance_breakdown": {
+        "editorial": 0.7,
+        "source_tier": 0.78,
+        "ai_relevance": 1.0,
+        "recency": 0.9814,
+        "story_heat": 0.25
+      },
+      "category": "industry",
+      "reasons": [
+        "multi_source",
+        "high_ai_relevance",
+        "high_importance"
+      ],
+      "earliest_at": "2026-06-27T12:25:21Z",
+      "latest_at": "2026-06-27T12:25:21Z",
+      "primary_item": {
+        "id": "e16b5833bc344fb3836c52dcfca0e89fba3000b8",
+        "title": "\"Raise Us\"启动：前美商务部长与四州合作筹集10亿美元应对AI就业冲击",
+        "url": "https://the-decoder.com/the-companies-most-likely-to-automate-your-job-are-now-funding-a-1-billion-program-to-retrain-you",
+        "source": "The Decoder：AI News（RSS）",
+        "source_name": "AI HOT"
       }
     },
     {
@@ -370,15 +433,15 @@
       ],
       "item_count": 1,
       "duplicate_count": 1,
-      "score": 0.8082,
-      "importance": 0.8082,
-      "importance_score": 0.8082,
+      "score": 0.8046,
+      "importance": 0.8046,
+      "importance_score": 0.8046,
       "importance_label": "官方更新",
       "importance_breakdown": {
         "editorial": 0.9,
         "source_tier": 1.0,
         "ai_relevance": 0.91,
-        "recency": 0.7565,
+        "recency": 0.7369,
         "story_heat": 0.0
       },
       "category": "official",
@@ -451,15 +514,15 @@
       ],
       "item_count": 2,
       "duplicate_count": 2,
-      "score": 0.7774,
-      "importance": 0.7774,
-      "importance_score": 0.7774,
+      "score": 0.773,
+      "importance": 0.773,
+      "importance_score": 0.773,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.7,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.9488,
+        "recency": 0.9243,
         "story_heat": 0.25
       },
       "category": "industry",
@@ -532,15 +595,15 @@
       ],
       "item_count": 2,
       "duplicate_count": 2,
-      "score": 0.7721,
-      "importance": 0.7721,
-      "importance_score": 0.7721,
+      "score": 0.7682,
+      "importance": 0.7682,
+      "importance_score": 0.7682,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.75,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.8362,
+        "recency": 0.8146,
         "story_heat": 0.25
       },
       "category": "industry",
@@ -556,6 +619,66 @@
         "title": "Cursor 研究发现奖励攻击虚增编码智能体 SWE-bench Pro 分数",
         "url": "https://www.marktechpost.com/2026/06/26/cursor-study-finds-reward-hacking-inflates-coding-agent-benchmark-scores-on-swe-bench-pro",
         "source": "MarkTechPost（RSS）",
+        "source_name": "AI HOT"
+      }
+    },
+    {
+      "story_id": "story_be87d84cf8c7",
+      "title": "Runway API 推出广告本地化 Recipe",
+      "url": "https://x.com/runwayml/status/2070855164584726791",
+      "primary_url": "https://x.com/runwayml/status/2070855164584726791",
+      "source": "X：Runway (@runwayml)",
+      "source_name": "AI HOT",
+      "sources": [
+        {
+          "id": "ca87abe6e093fc9d891e5ed4990d4b51e557b568",
+          "title": "Runway API 推出广告本地化 Recipe",
+          "url": "https://x.com/runwayml/status/2070855164584726791",
+          "source": "X：Runway (@runwayml)",
+          "source_name": "AI HOT",
+          "site_id": "aihot",
+          "published_at": "2026-06-27T13:02:00Z"
+        }
+      ],
+      "source_count": 1,
+      "source_names": [
+        "X：Runway (@runwayml)"
+      ],
+      "items": [
+        {
+          "id": "ca87abe6e093fc9d891e5ed4990d4b51e557b568",
+          "title": "Runway API 推出广告本地化 Recipe",
+          "url": "https://x.com/runwayml/status/2070855164584726791",
+          "source": "X：Runway (@runwayml)",
+          "source_name": "AI HOT",
+          "site_id": "aihot",
+          "published_at": "2026-06-27T13:02:00Z"
+        }
+      ],
+      "item_count": 1,
+      "duplicate_count": 1,
+      "score": 0.7478,
+      "importance": 0.7478,
+      "importance_score": 0.7478,
+      "importance_label": "行业动态",
+      "importance_breakdown": {
+        "editorial": 0.66,
+        "source_tier": 0.78,
+        "ai_relevance": 1.0,
+        "recency": 0.9901,
+        "story_heat": 0.0
+      },
+      "category": "industry",
+      "reasons": [
+        "high_ai_relevance"
+      ],
+      "earliest_at": "2026-06-27T13:02:00Z",
+      "latest_at": "2026-06-27T13:02:00Z",
+      "primary_item": {
+        "id": "ca87abe6e093fc9d891e5ed4990d4b51e557b568",
+        "title": "Runway API 推出广告本地化 Recipe",
+        "url": "https://x.com/runwayml/status/2070855164584726791",
+        "source": "X：Runway (@runwayml)",
         "source_name": "AI HOT"
       }
     },
@@ -613,15 +736,15 @@
       ],
       "item_count": 2,
       "duplicate_count": 2,
-      "score": 0.7754,
-      "importance": 0.7754,
-      "importance_score": 0.7754,
+      "score": 0.7712,
+      "importance": 0.7712,
+      "importance_score": 0.7712,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.73,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.8876,
+        "recency": 0.8646,
         "story_heat": 0.25
       },
       "category": "industry",
@@ -675,15 +798,15 @@
       ],
       "item_count": 1,
       "duplicate_count": 1,
-      "score": 0.7423,
-      "importance": 0.7423,
-      "importance_score": 0.7423,
+      "score": 0.7388,
+      "importance": 0.7388,
+      "importance_score": 0.7388,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.78,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.7595,
+        "recency": 0.7398,
         "story_heat": 0.0
       },
       "category": "industry",
@@ -735,15 +858,15 @@
       ],
       "item_count": 1,
       "duplicate_count": 1,
-      "score": 0.7393,
-      "importance": 0.7393,
-      "importance_score": 0.7393,
+      "score": 0.7358,
+      "importance": 0.7358,
+      "importance_score": 0.7358,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.78,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.7428,
+        "recency": 0.7236,
         "story_heat": 0.0
       },
       "category": "industry",
@@ -795,15 +918,15 @@
       ],
       "item_count": 1,
       "duplicate_count": 1,
-      "score": 0.7339,
-      "importance": 0.7339,
-      "importance_score": 0.7339,
+      "score": 0.7304,
+      "importance": 0.7304,
+      "importance_score": 0.7304,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.76,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.7461,
+        "recency": 0.7268,
         "story_heat": 0.0
       },
       "category": "industry",
@@ -874,15 +997,15 @@
       ],
       "item_count": 2,
       "duplicate_count": 2,
-      "score": 0.765,
-      "importance": 0.765,
-      "importance_score": 0.765,
+      "score": 0.761,
+      "importance": 0.761,
+      "importance_score": 0.761,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.71,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.8632,
+        "recency": 0.8409,
         "story_heat": 0.25
       },
       "category": "industry",
@@ -936,15 +1059,15 @@
       ],
       "item_count": 1,
       "duplicate_count": 1,
-      "score": 0.7333,
-      "importance": 0.7333,
-      "importance_score": 0.7333,
+      "score": 0.7298,
+      "importance": 0.7298,
+      "importance_score": 0.7298,
       "importance_label": "行业动态",
       "importance_breakdown": {
         "editorial": 0.75,
         "source_tier": 0.78,
         "ai_relevance": 1.0,
-        "recency": 0.7595,
+        "recency": 0.7398,
         "story_heat": 0.0
       },
       "category": "industry",
@@ -1014,15 +1137,15 @@
       ],
       "item_count": 2,
       "duplicate_count": 2,
-      "score": 0.6462,
-      "importance": 0.6462,
-      "importance_score": 0.6462,
+      "score": 0.6426,
+      "importance": 0.6426,
+      "importance_score": 0.6426,
       "importance_label": "值得关注",
       "importance_breakdown": {
         "editorial": 0.612,
         "source_tier": 0.58,
         "ai_relevance": 0.85,
-        "recency": 0.7777,
+        "recency": 0.7576,
         "story_heat": 0.25
       },
       "category": "watch",
@@ -1094,15 +1217,15 @@
       ],
       "item_count": 2,
       "duplicate_count": 2,
-      "score": 0.6209,
-      "importance": 0.6209,
-      "importance_score": 0.6209,
+      "score": 0.6173,
+      "importance": 0.6173,
+      "importance_score": 0.6173,
       "importance_label": "值得关注",
       "importance_breakdown": {
         "editorial": 0.5688,
         "source_tier": 0.58,
         "ai_relevance": 0.79,
-        "recency": 0.7758,
+        "recency": 0.7557,
         "story_heat": 0.25
       },
       "category": "watch",
@@ -1229,15 +1352,15 @@
       ],
       "item_count": 5,
       "duplicate_count": 5,
-      "score": 0.6082,
-      "importance": 0.6082,
-      "importance_score": 0.6082,
+      "score": 0.6038,
+      "importance": 0.6038,
+      "importance_score": 0.6038,
       "importance_label": "多源热议",
       "importance_breakdown": {
         "editorial": 0.468,
         "source_tier": 0.32,
         "ai_relevance": 0.65,
-        "recency": 0.9297,
+        "recency": 0.9057,
         "story_heat": 1.0
       },
       "category": "multi_source",
@@ -1345,15 +1468,15 @@
       ],
       "item_count": 4,
       "duplicate_count": 4,
-      "score": 0.5768,
-      "importance": 0.5768,
-      "importance_score": 0.5768,
+      "score": 0.5726,
+      "importance": 0.5726,
+      "importance_score": 0.5726,
       "importance_label": "多源热议",
       "importance_breakdown": {
         "editorial": 0.468,
         "source_tier": 0.32,
         "ai_relevance": 0.65,
-        "recency": 0.8944,
+        "recency": 0.8713,
         "story_heat": 0.75
       },
       "category": "multi_source",
@@ -1423,15 +1546,15 @@
       ],
       "item_count": 2,
       "duplicate_count": 2,
-      "score": 0.5761,
-      "importance": 0.5761,
-      "importance_score": 0.5761,
+      "score": 0.5719,
+      "importance": 0.5719,
+      "importance_score": 0.5719,
       "importance_label": "值得关注",
       "importance_breakdown": {
         "editorial": 0.468,
         "source_tier": 0.54,
         "ai_relevance": 0.65,
-        "recency": 0.8995,
+        "recency": 0.8762,
         "story_heat": 0.25
       },
       "category": "watch",
@@ -1466,13 +1589,13 @@
           "published_at": "2026-06-27T10:19:53.844000Z"
         },
         {
-          "id": "cf2a5476f20349e7fee6c5b6f9676a5b91fde490",
-          "title": "DeepSeek 开源推理优化，生成速度提高 60–85% [pdf] / DeepSeek open-sources inference optimizations with 60–85% faster generation [pdf]",
-          "url": "https://news.ycombinator.com/item?id=48696585",
-          "source": "hackernews",
-          "source_name": "NewsNow",
-          "site_id": "newsnow",
-          "published_at": "2026-06-27T09:53:04.031000Z"
+          "id": "446dda2a1a67d07d4a3f7788e25472cf26e3749b",
+          "title": "DeepSeek 开源了推理优化方案，生成速度提升了 60% 至 85% [pdf] / DSpark: Speculative decoding accelerates LLM inference [pdf]",
+          "url": "https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf",
+          "source": "Hacker News (黑客新闻)",
+          "source_name": "Info Flow",
+          "site_id": "iris",
+          "published_at": "2026-06-27T09:18:52Z"
         },
         {
           "id": "41b22634a77df2c7bcea0fc980b04b70b2182d22",
@@ -1487,8 +1610,8 @@
       "source_count": 3,
       "source_names": [
         "Hacker News",
-        "github.com",
-        "hackernews"
+        "Hacker News (黑客新闻)",
+        "github.com"
       ],
       "items": [
         {
@@ -1501,13 +1624,13 @@
           "published_at": "2026-06-27T10:19:53.844000Z"
         },
         {
-          "id": "cf2a5476f20349e7fee6c5b6f9676a5b91fde490",
-          "title": "DeepSeek 开源推理优化，生成速度提高 60–85% [pdf] / DeepSeek open-sources inference optimizations with 60–85% faster generation [pdf]",
-          "url": "https://news.ycombinator.com/item?id=48696585",
-          "source": "hackernews",
-          "source_name": "NewsNow",
-          "site_id": "newsnow",
-          "published_at": "2026-06-27T09:53:04.031000Z"
+          "id": "446dda2a1a67d07d4a3f7788e25472cf26e3749b",
+          "title": "DeepSeek 开源了推理优化方案，生成速度提升了 60% 至 85% [pdf] / DSpark: Speculative decoding accelerates LLM inference [pdf]",
+          "url": "https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf",
+          "source": "Hacker News (黑客新闻)",
+          "source_name": "Info Flow",
+          "site_id": "iris",
+          "published_at": "2026-06-27T09:18:52Z"
         },
         {
           "id": "41b22634a77df2c7bcea0fc980b04b70b2182d22",
@@ -1521,15 +1644,15 @@
       ],
       "item_count": 3,
       "duplicate_count": 3,
-      "score": 0.5667,
-      "importance": 0.5667,
-      "importance_score": 0.5667,
+      "score": 0.5622,
+      "importance": 0.5622,
+      "importance_score": 0.5622,
       "importance_label": "多源热议",
       "importance_breakdown": {
         "editorial": 0.468,
         "source_tier": 0.32,
         "ai_relevance": 0.65,
-        "recency": 0.9775,
+        "recency": 0.9522,
         "story_heat": 0.5
       },
       "category": "multi_source",
@@ -1544,164 +1667,6 @@
         "url": "https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf",
         "source": "github.com",
         "source_name": "Buzzing"
-      }
-    },
-    {
-      "story_id": "story_1647e421b056",
-      "title": "Anil-抹茶 / 开放生成-AI / Anil-matcha / Open-Generative-AI",
-      "url": "https://github.com/Anil-matcha/Open-Generative-AI",
-      "primary_url": "https://github.com/Anil-matcha/Open-Generative-AI",
-      "source": "GitHub · Trending Today",
-      "source_name": "TopHub",
-      "sources": [
-        {
-          "id": "76fa1f565e309ef83d66010b86b2639eeaa61318",
-          "title": "Anil-抹茶 / 开放生成-AI / Anil-matcha / Open-Generative-AI",
-          "url": "https://github.com/Anil-matcha/Open-Generative-AI",
-          "source": "GitHub · Trending Today",
-          "source_name": "TopHub",
-          "site_id": "tophub",
-          "published_at": null
-        },
-        {
-          "id": "e2d768d1dfb74b27548ee818ed1d2ed68848b472",
-          "title": "Anil-抹茶 / 开放生成-AI / Anil-matcha /      Open-Generative-AI",
-          "url": "https://github.com/Anil-matcha/Open-Generative-AI",
-          "source": "github",
-          "source_name": "NewsNow",
-          "site_id": "newsnow",
-          "published_at": "2026-06-27T11:32:36.600000Z"
-        }
-      ],
-      "source_count": 2,
-      "source_names": [
-        "GitHub · Trending Today",
-        "github"
-      ],
-      "items": [
-        {
-          "id": "76fa1f565e309ef83d66010b86b2639eeaa61318",
-          "title": "Anil-抹茶 / 开放生成-AI / Anil-matcha / Open-Generative-AI",
-          "url": "https://github.com/Anil-matcha/Open-Generative-AI",
-          "source": "GitHub · Trending Today",
-          "source_name": "TopHub",
-          "site_id": "tophub",
-          "published_at": null
-        },
-        {
-          "id": "e2d768d1dfb74b27548ee818ed1d2ed68848b472",
-          "title": "Anil-抹茶 / 开放生成-AI / Anil-matcha /      Open-Generative-AI",
-          "url": "https://github.com/Anil-matcha/Open-Generative-AI",
-          "source": "github",
-          "source_name": "NewsNow",
-          "site_id": "newsnow",
-          "published_at": "2026-06-27T11:32:36.600000Z"
-        }
-      ],
-      "item_count": 2,
-      "duplicate_count": 2,
-      "score": 0.5458,
-      "importance": 0.5458,
-      "importance_score": 0.5458,
-      "importance_label": "值得关注",
-      "importance_breakdown": {
-        "editorial": 0.468,
-        "source_tier": 0.32,
-        "ai_relevance": 0.65,
-        "recency": 1.0,
-        "story_heat": 0.25
-      },
-      "category": "watch",
-      "reasons": [
-        "multi_source"
-      ],
-      "earliest_at": "2026-06-27T11:32:36.600000Z",
-      "latest_at": "2026-06-27T11:54:32.478437Z",
-      "primary_item": {
-        "id": "76fa1f565e309ef83d66010b86b2639eeaa61318",
-        "title": "Anil-抹茶 / 开放生成-AI / Anil-matcha / Open-Generative-AI",
-        "url": "https://github.com/Anil-matcha/Open-Generative-AI",
-        "source": "GitHub · Trending Today",
-        "source_name": "TopHub"
-      }
-    },
-    {
-      "story_id": "story_fc5244fef89b",
-      "title": "都在说缺算力，90% 的 AI 芯片却被「浪费」了？",
-      "url": "https://www.huxiu.com/article/4870895.html?f=rss",
-      "primary_url": "https://www.huxiu.com/article/4870895.html?f=rss",
-      "source": "Readhub · AI",
-      "source_name": "TopHub",
-      "sources": [
-        {
-          "id": "d8710c1fc6584981effcad1d64cdd636521e2184",
-          "title": "都在说缺算力，90% 的 AI 芯片却被「浪费」了？",
-          "url": "https://www.huxiu.com/article/4870895.html?f=rss",
-          "source": "Readhub · AI",
-          "source_name": "TopHub",
-          "site_id": "tophub",
-          "published_at": null
-        },
-        {
-          "id": "a5be7df4b3c347f126d9c8bfe93706de6a043e92",
-          "title": "都在说缺算力，90%的AI芯片却被“浪费”了？",
-          "url": "https://www.huxiu.com/article/4870895.html?f=rss",
-          "source": "虎嗅 (Huxiu)",
-          "source_name": "Info Flow",
-          "site_id": "iris",
-          "published_at": "2026-06-27T10:40:00Z"
-        }
-      ],
-      "source_count": 2,
-      "source_names": [
-        "Readhub · AI",
-        "虎嗅 (Huxiu)"
-      ],
-      "items": [
-        {
-          "id": "d8710c1fc6584981effcad1d64cdd636521e2184",
-          "title": "都在说缺算力，90% 的 AI 芯片却被「浪费」了？",
-          "url": "https://www.huxiu.com/article/4870895.html?f=rss",
-          "source": "Readhub · AI",
-          "source_name": "TopHub",
-          "site_id": "tophub",
-          "published_at": null
-        },
-        {
-          "id": "a5be7df4b3c347f126d9c8bfe93706de6a043e92",
-          "title": "都在说缺算力，90%的AI芯片却被“浪费”了？",
-          "url": "https://www.huxiu.com/article/4870895.html?f=rss",
-          "source": "虎嗅 (Huxiu)",
-          "source_name": "Info Flow",
-          "site_id": "iris",
-          "published_at": "2026-06-27T10:40:00Z"
-        }
-      ],
-      "item_count": 2,
-      "duplicate_count": 2,
-      "score": 0.5458,
-      "importance": 0.5458,
-      "importance_score": 0.5458,
-      "importance_label": "值得关注",
-      "importance_breakdown": {
-        "editorial": 0.468,
-        "source_tier": 0.32,
-        "ai_relevance": 0.65,
-        "recency": 1.0,
-        "story_heat": 0.25
-      },
-      "category": "watch",
-      "reasons": [
-        "multi_source"
-      ],
-      "earliest_at": "2026-06-27T10:40:00Z",
-      "latest_at": "2026-06-27T11:54:32.478437Z",
-      "primary_item": {
-        "id": "d8710c1fc6584981effcad1d64cdd636521e2184",
-        "title": "都在说缺算力，90% 的 AI 芯片却被「浪费」了？",
-        "url": "https://www.huxiu.com/article/4870895.html?f=rss",
-        "source": "Readhub · AI",
-        "source_name": "TopHub"
       }
     }
   ]
