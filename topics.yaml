@@ -1,0 +1,228 @@
+# =============================================================================
+# topics.yaml — 个人多领域雷达 · 主题注册表（草案 v0.1，待用户审）
+# -----------------------------------------------------------------------------
+# 来源：ai-news-radar-PLAN.md 的 7 主题框架（定稿 2026-06-30）
+# 作用：一个注册表喂同一引擎 → 每主题独立产出 data/<topic_id>/*.json
+# 本文件尚未接引擎；先审 → 再谈改造 update_news.py / GitHub Actions / Pages。
+#
+# 字段约定
+#   mode    : topic（关键词匹配领域，打分）| entity（盯人/盯频道，全收不打分）
+#   window  : 每主题独立时间窗（72h / 1w / 2w ...）—— 不再用原版全局 24h 滚动窗
+#   scorer  : keyword_prefilter+llm（粗筛→LLM，控 token）| llm | keyword | none
+#   source.type : rss | arxiv | arxiv_author | podcast | youtube | scrape | x_account
+#   source.tier : official 官方一手 > media 专业媒体 > aggregator 聚合站
+#                 > self_media 个人博客/substack > entity 盯人对象
+#                 （对齐引擎 SOURCE_TIER_IMPORTANCE 的层级思路）
+#   source.status : ok     已 HTTP 实测 200 且返回 feed（2026-06-30 本机核验）
+#                   verify 大概率可用但本机被 Cloudflare/超时挡住，部署环境再确认
+#                   todo   无现成 feed / 需人工补 ID，下一步处理
+#
+# 本期可运行源类型：rss / arxiv / arxiv_author / podcast / youtube。
+# 引擎对以下源「解析但跳过」(source_health 记 status=skipped，不报错、不抓取)：
+#   - type 为 scrape / x_account（适配器后续做）
+#   - enabled: false
+#   - arxiv_author 且 author_id 为 "TODO"
+# topic 字段 keywords：用于主题相关性打分(KeywordScorer)，与高频源粗筛用的
+#   prefilter_keywords 分开。entity 模式(scorer=none)不需要 keywords。
+# =============================================================================
+
+version: 1
+
+defaults:
+  recency_unit: hours
+
+# -----------------------------------------------------------------------------
+topics:
+
+  # === 1. 前沿大模型·Agent·具身（三合一）===================================
+  - id: frontier
+    name: 前沿大模型·Agent·具身
+    mode: topic
+    window: 72h
+    scorer: keyword_prefilter+llm
+    sub_labels: [model_release, agent, embodied]
+    # arXiv 粗筛关键词（粗筛后再交 LLM 精判，控 token）
+    prefilter_keywords: [agent, agentic, LLM, "large language model", reasoning, multimodal, embodied, robot, manipulation, "vision-language-action", VLA, RLHF, "tool use", "model release"]
+    # 主题相关性打分关键词（KeywordScorer 用，作用于 title+summary）
+    keywords: [大模型, LLM, GPT, Claude, Gemini, Qwen, DeepSeek, agent, 智能体, reasoning, 推理, multimodal, 多模态, "open-source", 开源, "model release", 具身, embodied, robot, 机器人, RLHF, inference, 推理优化]
+    sources:
+      # --- 官方大模型实验室博客 ---
+      - { name: OpenAI 官博,            url: "https://openai.com/news/rss.xml",        type: rss,   tier: official, sub_label: model_release, status: ok }
+      - { name: Google DeepMind 官博,   url: "https://deepmind.google/blog/rss.xml",    type: rss,   tier: official, sub_label: model_release, status: ok }
+      - { name: 通义 Qwen 官博,         url: "https://qwenlm.github.io/blog/index.xml", type: rss,   tier: official, sub_label: model_release, status: ok }
+      - { name: Mistral 官博,           url: "https://mistral.ai/rss.xml",              type: rss,   tier: official, sub_label: model_release, status: ok }
+      - name: Anthropic News
+        url: "https://www.anthropic.com/news"
+        type: scrape
+        tier: official
+        sub_label: model_release
+        status: todo
+        note: 无官方 RSS（/rss.xml /news/rss.xml 均 404）。候选 rsshub 桥接 https://rsshub.app/anthropic/news —— 需自建 rsshub 或核验公共实例可用性。
+      - name: Meta AI 官博
+        url: "https://ai.meta.com/blog/"
+        type: scrape
+        tier: official
+        sub_label: model_release
+        status: todo
+        note: 未找到可用 RSS（/blog/rss/ /blog/feed/ 404，/blog/rss.xml 400）。需抓取或找第三方桥。
+      - name: DeepSeek 官博
+        url: "https://api-docs.deepseek.com/news"
+        type: scrape
+        tier: official
+        sub_label: model_release
+        status: todo
+        note: feed 地址未知，需核验（官网/公众号为主，可能需抓取）。
+      - name: xAI News
+        url: "https://x.ai/news/rss.xml"
+        type: rss
+        tier: official
+        sub_label: model_release
+        status: verify
+        note: 猜测地址，本机 403（Cloudflare）。需在部署环境确认是否存在 RSS。
+      # --- arXiv（高频，关键词粗筛→LLM 精判）---
+      - { name: "arXiv cs.CL", url: "http://export.arxiv.org/rss/cs.CL", type: arxiv, tier: official, sub_label: model_release, status: ok, prefilter: true }
+      - { name: "arXiv cs.LG", url: "http://export.arxiv.org/rss/cs.LG", type: arxiv, tier: official, sub_label: model_release, status: ok, prefilter: true }
+      - { name: "arXiv cs.AI", url: "http://export.arxiv.org/rss/cs.AI", type: arxiv, tier: official, sub_label: agent,         status: ok, prefilter: true }
+      - { name: "arXiv cs.MA", url: "http://export.arxiv.org/rss/cs.MA", type: arxiv, tier: official, sub_label: agent,         status: ok, prefilter: true }
+      - { name: "arXiv cs.RO", url: "http://export.arxiv.org/rss/cs.RO", type: arxiv, tier: official, sub_label: embodied,      status: ok, prefilter: true }
+      # --- 资讯/分析 ---
+      - { name: "Latent Space（写）", url: "https://www.latent.space/feed", type: rss, tier: self_media, sub_label: agent, status: ok }
+      # --- 具身机器人 ---
+      - { name: Boston Dynamics Blog, url: "https://bostondynamics.com/feed/", type: rss, tier: official, sub_label: embodied, status: ok }
+      - name: Figure
+        url: "https://www.figure.ai/news"
+        type: x_account
+        handle: "@Figure_robot"
+        tier: official
+        sub_label: embodied
+        status: todo
+        note: 官网无 RSS（404）。建议走引擎现有 X/SocialData 路盯官方账号，或抓取 news 页。
+      - { name: "1X",                   url: "https://www.1x.tech/",                       type: scrape, handle: "@1x_tech",            tier: official, sub_label: embodied, status: todo, note: "无 RSS，需抓取/盯 X 账号" }
+      - { name: "Physical Intelligence (π)", url: "https://www.physicalintelligence.company/", type: scrape, handle: "@physical_int", tier: official, sub_label: embodied, status: todo, note: "无 RSS，研究博客需抓取" }
+      - { name: "宇树 Unitree",          url: "https://www.unitree.com/",                   type: scrape, tier: official, sub_label: embodied, status: todo, note: "国内厂商，无英文 RSS；可能需公众号/微博适配器" }
+      - { name: "智元 AgiBot",           url: "https://www.zhiyuan-robot.com/",             type: scrape, tier: official, sub_label: embodied, status: todo, note: "同上，国内厂商撞墙，暂缓" }
+
+  # === 2. AI-Health：药物发现 + CDMO ======================================
+  - id: ai_health
+    name: AI-Health（药物发现 + CDMO）
+    mode: topic
+    window: 1w
+    scorer: llm
+    keywords: ["drug discovery", 药物发现, target, 靶点, "clinical trial", 临床, FDA, molecule, 分子, protein, 蛋白, AlphaFold, CDMO, biotech, pharma, 生物制药, antibody, 抗体, oncology, 肿瘤, "AI drug", 药物设计]
+    sources:
+      - { name: bioRxiv (all),               url: "http://connect.biorxiv.org/biorxiv_xml.php?subject=all",   type: rss, tier: official, status: ok, note: "可按 subject 细分，如 bioinformatics" }
+      - { name: medRxiv (all),               url: "http://connect.medrxiv.org/medrxiv_xml.php?subject=all",   type: rss, tier: official, status: ok }
+      - { name: Nature Biotechnology,        url: "https://www.nature.com/nbt.rss",            type: rss, tier: official, status: verify, note: "本机连接超时(000)；URL 为 Nature 标准格式，GitHub Actions 环境大概率可用" }
+      - { name: Nature Machine Intelligence, url: "https://www.nature.com/natmachintell.rss",  type: rss, tier: official, status: verify, note: "同上(000)，标准格式" }
+      - { name: Endpoints News,              url: "https://endpts.com/feed/",                  type: rss, tier: media,    status: ok, note: "需带浏览器 UA，引擎默认 UA 可能被 403" }
+      - { name: FierceBiotech,               url: "https://www.fiercebiotech.com/rss/xml",     type: rss, tier: media,    status: ok }
+      - { name: FiercePharma,                url: "https://www.fiercepharma.com/rss/xml",      type: rss, tier: media,    status: ok }
+      - { name: STAT News,                   url: "https://www.statnews.com/feed/",            type: rss, tier: media,    status: ok }
+      - { name: Isomorphic Labs,  url: "https://www.isomorphiclabs.com/articles", type: scrape, tier: official, status: todo, note: "公司博客，RSS 未知，需核验/抓取" }
+      - { name: Recursion,        url: "https://www.recursion.com/news",          type: scrape, tier: official, status: todo, note: "RSS 未知" }
+      - { name: Insilico Medicine,url: "https://insilico.com/news",               type: scrape, tier: official, status: todo, note: "RSS 未知" }
+    note: ⚠️ 药明系(WuXi) 深度信息在 A股/H股公告(🟡)，暂缓，以后接公告适配器。
+
+  # === 3. 量化因子研究 ====================================================
+  - id: quant_factor
+    name: 量化因子研究
+    mode: topic
+    window: 1w
+    scorer: llm
+    keywords: [factor, 因子, alpha, backtest, 回测, signal, momentum, 动量, value, 价值, portfolio, 组合, "risk premium", anomaly, 异象, "cross-section", 量化, systematic, "factor investing", 选股]
+    sources:
+      - { name: "Quantocracy（聚合 ⭐⭐⭐）", url: "https://quantocracy.com/feed/",   type: rss,   tier: aggregator, status: ok }
+      - { name: Alpha Architect,             url: "https://alphaarchitect.com/feed/", type: rss,   tier: media,      status: ok }
+      - { name: Quantpedia,                  url: "https://quantpedia.com/feed/",     type: rss,   tier: media,      status: ok }
+      - { name: "QuantSeeker (substack)",    url: "https://quantseeker.substack.com/feed", type: rss, tier: self_media, status: ok }
+      - { name: "arXiv q-fin.PM", url: "http://export.arxiv.org/rss/q-fin.PM", type: arxiv, tier: official, status: ok }
+      - { name: "arXiv q-fin.TR", url: "http://export.arxiv.org/rss/q-fin.TR", type: arxiv, tier: official, status: ok }
+      - { name: "arXiv q-fin.ST", url: "http://export.arxiv.org/rss/q-fin.ST", type: arxiv, tier: official, status: ok }
+    note: 国内量化（量化投资与机器学习 / 聚宽）在公众号，撞墙，暂缓。
+
+  # === 4. 新书 ============================================================
+  - id: new_books
+    name: 新书
+    mode: topic
+    window: 2w
+    scorer: keyword
+    domains: [AI/ML, 量化投资, 科学(物理/生物/长寿/脑), 商业创业科技史, 思想认知历史]
+    keywords: [book, 新书, 出版, "new release", author, 著作, edition, hardcover, "book review", 书评, memoir, 传记]
+    sources:
+      - { name: "O'Reilly Radar",      url: "https://www.oreilly.com/radar/feed/index.xml", type: rss, tier: official, status: ok }
+      - { name: MIT Press,             url: "https://mitpress.mit.edu/feed/",               type: rss, tier: official, status: verify, note: "本机 403(Cloudflare)，URL 大概率有效，部署环境确认" }
+      - { name: Five Books,            url: "https://fivebooks.com/feed/",                  type: rss, tier: media,    status: ok }
+      - { name: Marginal Revolution,   url: "https://marginalrevolution.com/feed",          type: rss, tier: self_media, status: ok }
+      - { name: Astral Codex Ten,      url: "https://www.astralcodexten.com/feed",          type: rss, tier: self_media, status: ok }
+      - { name: The Browser,           url: "https://thebrowser.com/",                      type: scrape, tier: media, status: todo, note: "付费订阅，无公开全文 RSS，需核验" }
+    note: 作者新书预告靠主题 7（盯人）兜底。
+
+  # === 5. 中文科技播客（按嘉宾打标签）=====================================
+  - id: cn_podcasts
+    name: 中文科技播客
+    mode: topic
+    window: 1w
+    scorer: keyword
+    guest_tagging: true   # 按嘉宾打标签 → 自动兜住戴雨森/张璐这类被访谈型人物
+    keywords: [AI, 大模型, agent, 智能体, 创业, 投资, 芯片, 半导体, 机器人, 科技, 访谈, 算力, 模型]
+    sources:
+      - { name: "张小珺Jùn｜商业访谈录", host: 张小珺,  url: "https://feed.xyzfm.space/dk4yh3pkpjp3", type: podcast, tier: media, status: ok, note: "小宇宙 feed" }
+      - { name: "硅谷101",               host: 泓君Jane, url: "https://feeds.fireside.fm/sv101/rss",   type: podcast, tier: media, status: ok }
+      - { name: "晚点聊 LateTalk",       host: 程曼祺,   url: "https://feeds.fireside.fm/latetalk/rss",type: podcast, tier: media, status: ok }
+
+  # === 6. 外网科技播客 Top5（按嘉宾打标签）================================
+  - id: en_podcasts
+    name: 外网科技播客 Top5
+    mode: topic
+    window: 1w
+    scorer: keyword
+    guest_tagging: true
+    keywords: [AI, AGI, LLM, agent, model, research, startup, compute, GPU, scaling, robotics, alignment, 算力, 模型]
+    sources:
+      - { name: Dwarkesh Podcast,   host: "Dwarkesh Patel",          url: "https://www.dwarkesh.com/feed",                     type: podcast, tier: self_media, status: ok }
+      - { name: Lex Fridman Podcast,host: "Lex Fridman",             url: "https://lexfridman.com/feed/podcast/",              type: podcast, tier: self_media, status: ok }
+      - { name: "Latent Space（播）",host: "swyx & Alessio",          url: "https://api.substack.com/feed/podcast/1084089.rss", type: podcast, tier: self_media, status: ok }
+      - { name: "No Priors",        host: "Sarah Guo & Elad Gil",    url: "https://feeds.megaphone.fm/nopriors",               type: podcast, tier: self_media, status: ok }
+      - name: The Cognitive Revolution
+        host: "Nathan Labenz"
+        url: "https://cognitiverevolution.substack.com/feed"
+        type: podcast
+        tier: self_media
+        status: verify
+        note: substack(写) feed 已实测 ok；音频播客 feed 候选 https://feeds.megaphone.fm/RINTP3108857801 需确认归属。
+      # 备选
+      - { name: "TWIML (备选)", host: "Sam Charrington", url: "https://twimlai.com/feed/",            type: podcast, tier: self_media, status: ok, enabled: false }
+      - { name: "MLST (备选)",  host: "Tim Scarfe",      url: "https://anchor.fm/s/1e4a0eac/podcast/rss", type: podcast, tier: self_media, status: ok, enabled: false }
+
+  # === 7. 实体雷达（盯人/盯频道，全收）====================================
+  - id: entity_radar
+    name: 实体雷达
+    mode: entity
+    window: 72h
+    scorer: none
+    sources:
+      # --- 盯人 ---
+      - name: 姚顺宇 (Google DeepMind)
+        type: arxiv_author
+        author_id: "TODO"
+        enabled: false        # 本期禁用：author_id 未确认，引擎跳过(status=skipped)
+        tier: entity
+        status: todo
+        note: ⚠️ 必须用 arXiv 作者 ID 锚定，防与「姚顺雨 / Shunyu Yao」(ReAct 作者, OpenAI→腾讯) 同名混淆。需人工核验确定其 arXiv author identifier（https://arxiv.org/a/<id>）。补到 author_id 后把 enabled 改成 true。
+      - { name: "Simon Willison ⭐⭐⭐", url: "https://simonwillison.net/atom/everything/", type: rss, tier: entity, status: ok }
+      - { name: "Nathan Lambert (Interconnects)", url: "https://www.interconnects.ai/feed", type: rss, tier: entity, status: ok }
+      - { name: "Lilian Weng",        url: "https://lilianweng.github.io/index.xml",     type: rss, tier: entity, status: ok }
+      - { name: "Sebastian Raschka",  url: "https://magazine.sebastianraschka.com/feed", type: rss, tier: entity, status: ok, note: "另有 https://sebastianraschka.com/rss_feed.xml 亦可" }
+      - { name: "Andrej Karpathy",    url: "https://karpathy.bearblog.dev/feed/",        type: rss, tier: entity, status: ok }
+      - { name: "Jack Clark (Import AI)", url: "https://importai.substack.com/feed",     type: rss, tier: entity, status: ok, note: "另有 https://jack-clark.net/feed/" }
+      - { name: "Dylan Patel (SemiAnalysis)", url: "https://www.semianalysis.com/feed",  type: rss, tier: entity, status: ok }
+      # --- 盯 YouTube 频道（channel RSS）---
+      - { name: "AI Explained",       url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCNJ1Ymd5yFuUPtn21xtRbbw", type: youtube, tier: entity, status: ok }
+      - { name: "bycloud",            url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCfg9ux4m8P0YDITTPptrmLg", type: youtube, tier: entity, status: ok }
+      - { name: "Two Minute Papers",  url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg", type: youtube, tier: entity, status: ok }
+
+# =============================================================================
+# 明确不做（撞「无公开 feed / 结构化数字 / 低频报告」三堵墙）：
+#   商品基本面（棕榈油 / 白糖 / 黄金 / 厄尔尼诺）—— 引擎不适配。
+# 暂缓（待公告/公众号适配器）：药明系公告、国内量化公众号、国内具身厂商。
+# =============================================================================
