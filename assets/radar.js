@@ -43,6 +43,22 @@
       return s;
     }
   }
+  // Trim podcast show-notes (timeline, credits, links) down to the lead blurb.
+  // Cuts at the first clock-timestamp or known section marker, keeping >=20 chars.
+  var NOTE_MARKERS = ["时间线", "【主播", "【嘉宾", "【你将听到", "本期嘉宾", "本期主播",
+    "收听渠道", "延伸阅读", "相关链接", "BGM", "【监制", "【后期", "Special Guest"];
+  function cleanSummary(s) {
+    var t = htmlToText(s);
+    if (!t) return t;
+    var cut = t.length;
+    var ts = t.search(/\s\d{1,2}:\d{2}(?::\d{2})?\b/);
+    if (ts > 20) cut = Math.min(cut, ts);
+    NOTE_MARKERS.forEach(function (k) {
+      var i = t.indexOf(k);
+      if (i > 20) cut = Math.min(cut, i);
+    });
+    return t.slice(0, cut).trim();
+  }
   function healthCounts(sourceHealth) {
     var c = { ok: 0, failed: 0, skipped: 0 };
     (sourceHealth || []).forEach(function (h) {
@@ -154,13 +170,15 @@
     var sub = node.querySelector(".card-sublabel");
     if (item.sub_label) { sub.textContent = item.sub_label; sub.hidden = false; }
     node.querySelector(".card-time").textContent = item.published ? formatTime(item.published) : "时间未知";
+    var audio = node.querySelector(".card-audio");
+    if (item.audio_url) { audio.href = item.audio_url; audio.hidden = false; }
     var score = node.querySelector(".card-score");
     if (mode === "topic" && item.score != null) {
       score.textContent = Number(item.score).toFixed(2);
       score.hidden = false;
     }
     var summary = node.querySelector(".card-summary");
-    var text = htmlToText(item.summary);
+    var text = cleanSummary(item.summary);
     if (text) { summary.textContent = text; summary.hidden = false; }
     return node;
   }

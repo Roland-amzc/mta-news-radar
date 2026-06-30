@@ -134,6 +134,8 @@ body {
 .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 0.76rem; color: var(--muted); }
 .card-source { font-weight: 600; color: #44443e; }
 .card-sublabel { background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 0 6px; font-size: 0.72rem; }
+.card-audio { color: var(--accent); text-decoration: none; font-weight: 600; border: 1px solid var(--accent-soft); border-radius: 6px; padding: 0 7px; }
+.card-audio:hover { background: var(--accent-soft); }
 .card-score {
   margin-left: auto;
   background: var(--accent);
