@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import json
+
 from radar.digest import DigestConfig, build_digester
-from radar.digest.base import DigestOutput, DigestRequest
+from radar.digest.base import DigestOutput, DigestRequest, parse_digest_json
 from radar.digest.cache import DigestCache
 from radar.digest.noop import NoopDigester
+from radar.digest.openai_compat import OpenAICompatibleDigester
 from radar.digest.service import DigestService
 from radar.models import Item, TopicResult, TopicSpec
 
@@ -116,3 +119,60 @@ def test_factory_disabled_returns_noop(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
     monkeypatch.setenv("DIGEST_ENABLED", "0")
     assert isinstance(build_digester(DigestConfig()), NoopDigester)
+
+
+# ---- shared JSON parser ----
+
+def test_parse_digest_json_variants():
+    assert parse_digest_json('{"title_zh":"标题","summary_zh":"摘要"}') == DigestOutput("标题", "摘要")
+    # code fence + prose around it
+    fenced = '这是结果:\n```json\n{"title_zh":"甲","summary_zh":"乙"}\n```'
+    assert parse_digest_json(fenced) == DigestOutput("甲", "乙")
+    assert parse_digest_json("not json at all") is None
+    assert parse_digest_json('{"title_zh":"","summary_zh":"x"}') is None  # empty field
+    assert parse_digest_json(None) is None
+
+
+# ---- OpenAI-compatible digester (injected fake client) ----
+
+class _Msg:
+    def __init__(self, content): self.content = content
+
+class _Choice:
+    def __init__(self, content): self.message = _Msg(content)
+
+class _Resp:
+    def __init__(self, content): self.choices = [_Choice(content)]
+
+class _Completions:
+    def __init__(self, fn): self._fn = fn
+    def create(self, **kw): return self._fn(**kw)
+
+class FakeOpenAIClient:
+    """Mimics openai client.chat.completions.create."""
+    def __init__(self, fn): self.chat = type("C", (), {"completions": _Completions(fn)})()
+
+
+def test_openai_compatible_digester():
+    def reply(model, messages, **kw):
+        title = messages[-1]["content"].split("\n")[0]
+        return _Resp(json.dumps({"title_zh": "中文-" + title, "summary_zh": "摘要-" + title}))
+    d = OpenAICompatibleDigester(DigestConfig(), api_key="x", base_url="x", model="m",
+                                 client=FakeOpenAIClient(reply))
+    out = d.digest([DigestRequest("id0", "Hello", "body"), DigestRequest("id1", "World", None)])
+    assert out["id0"].title_zh == "中文-Hello" and out["id1"].summary_zh == "摘要-World"
+
+
+def test_openai_compatible_malformed_skipped():
+    d = OpenAICompatibleDigester(DigestConfig(), api_key="x", base_url="x", model="m",
+                                 client=FakeOpenAIClient(lambda **kw: _Resp("garbage, no json")))
+    assert d.digest([DigestRequest("id0", "Hi", None)]) == {}
+
+
+def test_factory_openai_compatible(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("DIGEST_ENABLED", raising=False)
+    monkeypatch.setenv("DIGEST_API_KEY", "k")
+    monkeypatch.setenv("DIGEST_BASE_URL", "https://api.deepseek.com")
+    monkeypatch.setenv("DIGEST_MODEL", "deepseek-chat")
+    assert isinstance(build_digester(DigestConfig()), OpenAICompatibleDigester)

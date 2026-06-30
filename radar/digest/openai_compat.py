@@ -1,10 +1,8 @@
-"""ClaudeDigester: Chinese title + summary via Claude (needs Anthropic API key).
+"""OpenAICompatibleDigester: one adapter for any OpenAI-compatible API.
 
-NOTE: requires the pay-per-token Anthropic API (ANTHROPIC_API_KEY) — a Claude
-Code / Coding Plan subscription does NOT grant this. For subscription-only or
-non-Anthropic setups, use OpenAICompatibleDigester (DeepSeek/Qwen/Kimi/GLM/...).
-
-`anthropic` is imported lazily so importing this module never requires the SDK.
+Configured entirely by (api_key, base_url, model) so the same code works with
+DeepSeek / 通义 Qwen / Kimi / 智谱 GLM / Gemini(OpenAI 端点) / OpenAI — no key to
+the Anthropic API required. `openai` is imported lazily.
 """
 
 from __future__ import annotations
@@ -21,24 +19,34 @@ from radar.digest.base import (
 )
 
 
-class ClaudeDigester:
-    def __init__(self, config: DigestConfig, client=None) -> None:
+class OpenAICompatibleDigester:
+    def __init__(
+        self,
+        config: DigestConfig,
+        api_key: str,
+        base_url: str,
+        model: str,
+        client=None,
+    ) -> None:
         self.config = config
+        self.model = model
         if client is None:
-            import anthropic  # lazy: only needed when actually digesting
+            from openai import OpenAI  # lazy
 
-            client = anthropic.Anthropic()
+            client = OpenAI(api_key=api_key, base_url=base_url)
         self._client = client
 
     def _digest_one(self, req: DigestRequest) -> tuple[str, DigestOutput] | None:
         try:
-            resp = self._client.messages.create(
-                model=self.config.model,
+            resp = self._client.chat.completions.create(
+                model=self.model,
                 max_tokens=512,
-                system=DIGEST_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": request_text(req)}],
+                messages=[
+                    {"role": "system", "content": DIGEST_SYSTEM_PROMPT},
+                    {"role": "user", "content": request_text(req)},
+                ],
             )
-            raw = next(b.text for b in resp.content if b.type == "text")
+            raw = resp.choices[0].message.content
             out = parse_digest_json(raw)
             return (req.id, out) if out else None
         except Exception:
