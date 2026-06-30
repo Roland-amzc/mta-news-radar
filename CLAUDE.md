@@ -31,7 +31,8 @@ fetchers only for stable, public, high-signal sources.
 - 前端主题 tab(`index.html` + `assets/radar.{css,js}`,Preview 实测 8 AC):已完成
 - 内容加工层(`radar/digest/`,产中文 title_zh/summary_zh;多 provider:OpenAI 兼容 DeepSeek/Qwen/Kimi/GLM/Gemini 或 Anthropic):已完成(注入桩验证;真实质量待配置某家 key)
 - 前端消费 zh 字段(卡片显示中文标题+原文副标题+中文摘要,DeepSeek 实测 Preview 验证):已完成
-- 分板块差异化呈现 / 非 feed 源适配器 / GitHub Actions 调度 / Pages:未开始(后续独立 spec)
+- GitHub Actions 每天跑 + Pages 部署(`.github/workflows/radar.yml`):代码完成,本地验通过;GitHub 侧实跑待用户 push + 配 Secret/Pages
+- 分板块差异化呈现 / 非 feed 源适配器:未开始(后续独立 spec)
 
 ## ADR
 
