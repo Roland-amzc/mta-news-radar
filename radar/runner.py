@@ -6,6 +6,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from radar.config import load_topics
+from radar.digest import DigestConfig, build_digester
+from radar.digest.cache import DigestCache
+from radar.digest.service import DigestService
 from radar.models import TopicResult
 from radar.pipeline import run_topic
 from radar.writer import write_index, write_topic
@@ -30,10 +33,15 @@ def run_all(
         wanted = set(only)
         topics = [t for t in topics if t.id in wanted]
 
+    digest_config = DigestConfig()
+    digest_cache = DigestCache(Path(output_dir) / "digest-cache.json").load()
+    digest_service = DigestService(build_digester(digest_config), digest_cache, digest_config)
+
     results: list[TopicResult] = []
     for topic in topics:
         try:
             result = run_topic(topic, now, max_feeds=max_feeds)
+            digest_service.process(result, topic)
         except Exception as exc:  # topic-level isolation
             result = TopicResult(
                 topic_id=topic.id,
@@ -49,5 +57,6 @@ def run_all(
         write_topic(result, output_dir)
         results.append(result)
 
+    digest_cache.save()
     write_index(results, output_dir)
     return results

@@ -17,6 +17,8 @@ def _item_to_dict(item: Item) -> dict:
         "tier": item.tier,
         "topic_id": item.topic_id,
         "summary": item.summary,
+        "title_zh": item.title_zh,
+        "summary_zh": item.summary_zh,
         "audio_url": item.audio_url,
         "published": item.published.isoformat() if item.published else None,
         "sub_label": item.sub_label,

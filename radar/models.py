@@ -60,6 +60,8 @@ class Item:
     topic_id: str
     summary: str | None = None  # feed summary/description; scoring uses title + summary
     audio_url: str | None = None  # podcast audio enclosure (reliable "listen" link)
+    title_zh: str | None = None  # LLM Chinese title (translated if source is English)
+    summary_zh: str | None = None  # LLM 2-3 sentence Chinese summary
     published: datetime | None = None
     sub_label: str | None = None
     score: float | None = None  # left None by none/entity scorer
