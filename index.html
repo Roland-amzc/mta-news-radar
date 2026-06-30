@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>个人多领域雷达</title>
+    <meta name="description" content="按主题分轨的个人资讯雷达:前沿大模型、AI-Health、量化因子、新书、播客、实体雷达。" />
+    <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./assets/radar.css?v=1" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1>个人多领域雷达</h1>
+          <p class="topbar-tag">MULTI-TOPIC NEWS RADAR</p>
+        </div>
+        <span class="updated" id="updatedAt">加载中…</span>
+      </header>
+
+      <nav class="tabbar" id="tabBar" role="tablist" aria-label="主题"></nav>
+
+      <section class="topic-header" id="topicHeader" aria-live="polite"></section>
+
+      <details class="health" id="healthDetail" hidden>
+        <summary>源状态详情</summary>
+        <div class="health-body" id="healthDetailBody"></div>
+      </details>
+
+      <div class="message" id="message" role="status" hidden></div>
+
+      <section class="news-list" id="newsList" aria-label="条目列表"></section>
+    </main>
+
+    <template id="itemTpl">
+      <article class="card">
+        <a class="card-title" target="_blank" rel="noopener noreferrer"></a>
+        <div class="card-meta">
+          <span class="card-source"></span>
+          <span class="card-sublabel" hidden></span>
+          <time class="card-time"></time>
+          <span class="card-score" hidden></span>
+        </div>
+        <p class="card-summary" hidden></p>
+      </article>
+    </template>
+
+    <script src="./assets/radar.js?v=1" defer></script>
+  </body>
+</html>

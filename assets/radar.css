@@ -1,0 +1,198 @@
+/* MTA News Radar — multi-topic frontend styles */
+:root {
+  --bg: #f6f6f2;
+  --surface: #ffffff;
+  --border: #e3e3da;
+  --text: #1d1d1b;
+  --muted: #6b6b63;
+  --accent: #2f6f4f;
+  --accent-soft: #e7f1ea;
+  --pill-ok: #2f6f4f;
+  --pill-failed: #b4452f;
+  --pill-skip: #8a8a80;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  line-height: 1.55;
+}
+
+.shell {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 18px 64px;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.topbar h1 { font-size: 1.5rem; margin: 0; letter-spacing: -0.01em; }
+.topbar-tag { margin: 2px 0 0; font-size: 0.7rem; letter-spacing: 0.18em; color: var(--muted); }
+.updated { font-size: 0.8rem; color: var(--muted); }
+
+/* Tab bar */
+.tabbar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 18px;
+  scrollbar-width: thin;
+}
+.tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tab:hover { border-color: var(--accent); }
+.tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tab .tab-count {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  opacity: 0.7;
+}
+
+/* Topic header */
+.topic-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+}
+.topic-header h2 { margin: 0 0 6px; font-size: 1.1rem; }
+.topic-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.health-summary { display: inline-flex; gap: 6px; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 0.72rem;
+  color: #fff;
+}
+.pill-ok { background: var(--pill-ok); }
+.pill-failed { background: var(--pill-failed); }
+.pill-skip { background: var(--pill-skip); }
+.pill-zero { opacity: 0.4; }
+
+/* Health detail */
+.health {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 18px;
+  font-size: 0.82rem;
+}
+.health > summary {
+  cursor: pointer;
+  padding: 10px 16px;
+  color: var(--muted);
+  user-select: none;
+}
+.health-body { padding: 0 16px 12px; }
+.health-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 0;
+  border-top: 1px solid var(--border);
+}
+.health-row .hstatus { flex: 0 0 64px; font-weight: 600; }
+.health-row .hstatus.ok { color: var(--pill-ok); }
+.health-row .hstatus.failed { color: var(--pill-failed); }
+.health-row .hstatus.skipped { color: var(--pill-skip); }
+.health-row .hname { flex: 0 0 auto; }
+.health-row .herror { color: var(--muted); margin-left: auto; text-align: right; }
+
+/* News list */
+.news-list { display: flex; flex-direction: column; gap: 10px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.card-title:hover { color: var(--accent); text-decoration: underline; }
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+.card-source { font-weight: 600; color: var(--text); }
+.card-sublabel {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 0 6px;
+}
+.card-score {
+  margin-left: auto;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0 7px;
+  font-variant-numeric: tabular-nums;
+}
+.card-summary {
+  margin: 8px 0 0;
+  font-size: 0.86rem;
+  color: #3a3a36;
+}
+
+/* Message (error / empty) */
+.message {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+}
+.message.error { border-color: var(--pill-failed); color: var(--pill-failed); }
+
+@media (max-width: 560px) {
+  .shell { padding: 18px 12px 48px; }
+  .card-score { margin-left: 0; }
+}
