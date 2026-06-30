@@ -29,7 +29,8 @@ fetchers only for stable, public, high-signal sources.
 - `topics.yaml` 注册表(7 主题 / 65 源,50 可运行):已完成
 - `radar/` 引擎(T0–T18,31 测 + 真实跑通 7 主题):已完成
 - 前端主题 tab(`index.html` + `assets/radar.{css,js}`,Preview 实测 8 AC):已完成
-- LLM 精判落地 / 非 feed 源适配器 / GitHub Actions 调度 / Pages:未开始(后续独立 spec)
+- 内容加工层(`radar/digest/`,Claude Haiku 产中文 title_zh/summary_zh):已完成(注入桩验证;真实 Haiku 翻译质量待 key)
+- 前端消费 zh 字段 / 分板块差异化呈现 / 非 feed 源适配器 / GitHub Actions 调度 / Pages:未开始(后续独立 spec)
 
 ## ADR
 
@@ -62,3 +63,10 @@ fetchers only for stable, public, high-signal sources.
 决策: 新建 `index.html` + `assets/radar.{css,js}`(原生、无框架、无构建)读新数据;旧 AI 单主题页归档为 `index.legacy.html`。生成的 `data/index.json` 与 `data/<topic>/` 不入库(gitignore)。
 原因: 旧页重度耦合旧 AI 数据模型(栏目/Top3/WaytoAGI/AI相关度),改造成本高于重建;与引擎「干净切断」一致。
 代价: 旧页高级筛选/搜索等未迁移;新页搜索/排序/深色留待后续。
+
+### ADR-006: 内容加工层落地 LLM(核心总结+翻译合一)
+日期: 2026-06-30
+决策: 之前留桩的 LLM 落地为「内容加工」——对每主题 top-N 条目用 Claude Haiku 4.5 产出 `title_zh`+`summary_zh`(中文标题+2-3句摘要,英文则翻译),引擎侧生成写进 JSON。可插拔 `Digester` 协议(Claude/Noop/Fake)、按 id 持久化缓存、单次预算闸、无 key 优雅降级。
+原因: 原文长文+大量英文难消化;Haiku 便宜($1/$5)、批量足够;缓存+预算控成本(稳态≈只新条目)。
+代价: 真实翻译质量需 ANTHROPIC_API_KEY 才能验;Batch API 50% 折扣暂未用(同步并发换即时性);前端消费 zh 字段是另一个模块。
+备注: 注意「核心总结/翻译」与「关系打分」是两件事——本层只加工,打分仍走 keyword。这是用户在前端长文难读后提出的方向。
