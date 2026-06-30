@@ -29,7 +29,7 @@ fetchers only for stable, public, high-signal sources.
 - `topics.yaml` 注册表(7 主题 / 65 源,50 可运行):已完成
 - `radar/` 引擎(T0–T18,31 测 + 真实跑通 7 主题):已完成
 - 前端主题 tab(`index.html` + `assets/radar.{css,js}`,Preview 实测 8 AC):已完成
-- 内容加工层(`radar/digest/`,Claude Haiku 产中文 title_zh/summary_zh):已完成(注入桩验证;真实 Haiku 翻译质量待 key)
+- 内容加工层(`radar/digest/`,产中文 title_zh/summary_zh;多 provider:OpenAI 兼容 DeepSeek/Qwen/Kimi/GLM/Gemini 或 Anthropic):已完成(注入桩验证;真实质量待配置某家 key)
 - 前端消费 zh 字段 / 分板块差异化呈现 / 非 feed 源适配器 / GitHub Actions 调度 / Pages:未开始(后续独立 spec)
 
 ## ADR
@@ -70,3 +70,9 @@ fetchers only for stable, public, high-signal sources.
 原因: 原文长文+大量英文难消化;Haiku 便宜($1/$5)、批量足够;缓存+预算控成本(稳态≈只新条目)。
 代价: 真实翻译质量需 ANTHROPIC_API_KEY 才能验;Batch API 50% 折扣暂未用(同步并发换即时性);前端消费 zh 字段是另一个模块。
 备注: 注意「核心总结/翻译」与「关系打分」是两件事——本层只加工,打分仍走 keyword。这是用户在前端长文难读后提出的方向。
+
+### ADR-007: 加工层支持多 provider(OpenAI 兼容),不绑 Anthropic API
+日期: 2026-06-30
+决策: 因用户只有 Claude Coding Plan 订阅(≠ Anthropic 按量 API),新增通用 `OpenAICompatibleDigester`,由 env 驱动(`DIGEST_API_KEY`/`DIGEST_BASE_URL`/`DIGEST_MODEL`)。一个适配器覆盖 DeepSeek / 通义 Qwen / Kimi / 智谱 GLM / Gemini(OpenAI 端点)/ OpenAI(`PROVIDER_PRESETS` 给 base_url+model)。工厂优先级:OpenAI 兼容 > Anthropic > Noop。
+原因: 订阅 OAuth 不能调 Messages API,且 GitHub Actions 里也只能放第三方 secret;中文输出+省钱首选 DeepSeek/Qwen 等。`Digester` 协议(ADR-002 依赖反转)正是为此留的活口——只多一个实现。
+代价: 各家结构化输出能力不一,统一改成 prompt 指示 JSON + 容错解析(Claude 也随之去掉 output_config),可靠性略低于原生 schema 约束但跨家通用。
