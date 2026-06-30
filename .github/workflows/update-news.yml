@@ -1,6 +1,8 @@
 name: Update AI News Snapshot
 
 on:
+  # Legacy AI-news engine (scripts/update_news.py). Scheduled trigger disabled —
+  # superseded by radar.yml (the topics.yaml multi-topic engine). Manual only.
   workflow_dispatch:
     inputs:
       force_tikhub:
@@ -8,8 +10,6 @@ on:
         required: false
         default: false
         type: boolean
-  schedule:
-    - cron: "*/30 * * * *"
 
 concurrency:
   group: update-ai-news-${{ github.ref }}

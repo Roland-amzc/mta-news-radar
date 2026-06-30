@@ -1,0 +1,67 @@
+name: Radar build & deploy
+
+on:
+  schedule:
+    - cron: "0 22 * * *" # daily, 22:00 UTC (~06:00 Beijing)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    env:
+      # DIGEST_API_KEY is the only real secret. base_url/model are non-secret
+      # Variables with DeepSeek defaults — change them in repo Variables to
+      # switch provider (Qwen/Kimi/GLM/Gemini/OpenAI/Ark) without editing code.
+      DIGEST_API_KEY: ${{ secrets.DIGEST_API_KEY }}
+      DIGEST_BASE_URL: ${{ vars.DIGEST_BASE_URL || 'https://api.deepseek.com' }}
+      DIGEST_MODEL: ${{ vars.DIGEST_MODEL || 'deepseek-chat' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore digest cache
+        uses: actions/cache@v4
+        with:
+          path: data/digest-cache.json
+          key: digest-cache-${{ github.run_id }}
+          restore-keys: |
+            digest-cache-
+
+      - name: Run radar engine
+        run: python run_radar.py
+
+      - name: Stage site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp site.webmanifest _site/ 2>/dev/null || true
+          cp -r assets _site/assets
+          cp -r data _site/data
+          rm -f _site/data/digest-cache.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
