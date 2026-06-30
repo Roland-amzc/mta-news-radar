@@ -2,7 +2,14 @@
 (function () {
   "use strict";
 
-  var state = { index: null, topicCache: new Map(), activeId: null };
+  var PAGE_SIZE = 25;
+  var state = {
+    index: null,
+    topicCache: new Map(),
+    activeId: null,
+    current: null, // current topicData being shown
+    shown: 0, // how many items rendered for current topic
+  };
   function $(id) { return document.getElementById(id); }
 
   /* ---- data loader ---- */
@@ -24,6 +31,18 @@
     if (isNaN(d.getTime())) return "—";
     return d.toLocaleString("zh-CN", { dateStyle: "medium", timeStyle: "short" });
   }
+  // Strip HTML markup from feed text -> plain text. DOMParser('text/html') is
+  // inert: it does not run scripts or load resources, so this is XSS-safe.
+  function htmlToText(s) {
+    if (!s) return s;
+    if (s.indexOf("<") === -1 && s.indexOf("&") === -1) return s;
+    try {
+      var doc = new DOMParser().parseFromString(s, "text/html");
+      return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+    } catch (e) {
+      return s;
+    }
+  }
   function healthCounts(sourceHealth) {
     var c = { ok: 0, failed: 0, skipped: 0 };
     (sourceHealth || []).forEach(function (h) {
@@ -38,33 +57,40 @@
     return span;
   }
 
-  /* ---- tab bar ---- */
-  function renderTabs(topics) {
-    var bar = $("tabBar");
-    bar.textContent = "";
+  /* ---- sidebar nav ---- */
+  function renderNav(topics) {
+    var nav = $("topicNav");
+    nav.textContent = "";
     topics.forEach(function (t) {
       var btn = document.createElement("button");
-      btn.className = "tab" + (t.id === state.activeId ? " active" : "");
+      btn.className = "nav-item" + (t.id === state.activeId ? " active" : "");
       btn.type = "button";
-      btn.setAttribute("role", "tab");
       btn.dataset.id = t.id;
       var name = document.createElement("span");
+      name.className = "nav-name";
       name.textContent = t.name;
       var count = document.createElement("span");
-      count.className = "tab-count";
+      count.className = "nav-count";
       count.textContent = t.count;
       btn.append(name, count);
-      btn.addEventListener("click", function () { selectTopic(t.id); });
-      bar.appendChild(btn);
+      var failed = (t.stats && t.stats.failed) || 0;
+      // health dot if any source failed (best-effort from index stats if present)
+      if (t.topic_error) {
+        var dot = document.createElement("span");
+        dot.className = "nav-dot";
+        btn.appendChild(dot);
+      }
+      btn.addEventListener("click", function () { selectTopic(t.id); closeNav(); });
+      nav.appendChild(btn);
     });
   }
-  function setActiveTab(id) {
-    document.querySelectorAll(".tab").forEach(function (el) {
+  function setActiveNav(id) {
+    document.querySelectorAll(".nav-item").forEach(function (el) {
       el.classList.toggle("active", el.dataset.id === id);
     });
   }
 
-  /* ---- topic view ---- */
+  /* ---- topic header + health ---- */
   function renderTopicHeader(data) {
     var header = $("topicHeader");
     header.textContent = "";
@@ -73,24 +99,21 @@
 
     var meta = document.createElement("div");
     meta.className = "topic-meta";
-    var parts = [
+    [
       "模式 " + data.mode,
       "窗口 " + data.window_hours + "h",
       (data.items ? data.items.length : 0) + " 条",
       "更新 " + formatTime(data.generated_at),
-    ];
-    parts.forEach(function (text) {
+    ].forEach(function (text) {
       var s = document.createElement("span");
       s.textContent = text;
       meta.appendChild(s);
     });
-
     var c = healthCounts(data.source_health);
     var health = document.createElement("span");
     health.className = "health-summary";
     health.append(pill("ok", "ok", c.ok), pill("failed", "失败", c.failed), pill("skip", "跳过", c.skipped));
     meta.appendChild(health);
-
     header.append(h2, meta);
   }
 
@@ -125,25 +148,43 @@
   function renderItem(item, mode) {
     var node = $("itemTpl").content.cloneNode(true);
     var a = node.querySelector(".card-title");
-    a.textContent = item.title;
+    a.textContent = htmlToText(item.title);
     a.href = item.url;
     node.querySelector(".card-source").textContent = item.source_name;
-
     var sub = node.querySelector(".card-sublabel");
     if (item.sub_label) { sub.textContent = item.sub_label; sub.hidden = false; }
-
-    node.querySelector(".card-time").textContent =
-      item.published ? formatTime(item.published) : "时间未知";
-
+    node.querySelector(".card-time").textContent = item.published ? formatTime(item.published) : "时间未知";
     var score = node.querySelector(".card-score");
     if (mode === "topic" && item.score != null) {
       score.textContent = Number(item.score).toFixed(2);
       score.hidden = false;
     }
-
     var summary = node.querySelector(".card-summary");
-    if (item.summary) { summary.textContent = item.summary; summary.hidden = false; }
+    var text = htmlToText(item.summary);
+    if (text) { summary.textContent = text; summary.hidden = false; }
     return node;
+  }
+
+  /* ---- pagination ---- */
+  function renderMore() {
+    var data = state.current;
+    if (!data) return;
+    var items = data.items || [];
+    var frag = document.createDocumentFragment();
+    var end = Math.min(state.shown + PAGE_SIZE, items.length);
+    for (var i = state.shown; i < end; i += 1) {
+      frag.appendChild(renderItem(items[i], data.mode));
+    }
+    $("newsList").appendChild(frag);
+    state.shown = end;
+    var remaining = items.length - state.shown;
+    var wrap = $("loadMoreWrap");
+    if (remaining > 0) {
+      wrap.hidden = false;
+      $("loadMoreBtn").textContent = "加载更多(还有 " + remaining + " 条)";
+    } else {
+      wrap.hidden = true;
+    }
   }
 
   /* ---- empty / error states ---- */
@@ -165,32 +206,30 @@
     $("newsList").textContent = "";
     $("topicHeader").textContent = "";
     $("healthDetail").hidden = true;
+    $("loadMoreWrap").hidden = true;
   }
-  function clearError() {
-    var m = $("message");
-    m.hidden = true;
-    m.className = "message";
-  }
+  function clearError() { var m = $("message"); m.hidden = true; m.className = "message"; }
 
   function renderTopic(data) {
     clearError();
+    state.current = data;
+    state.shown = 0;
     renderTopicHeader(data);
     renderHealthDetail(data);
-    var list = $("newsList");
-    list.textContent = "";
+    $("newsList").textContent = "";
     if (data.topic_error || !data.items || !data.items.length) {
+      $("loadMoreWrap").hidden = true;
       renderEmpty(data);
       return;
     }
-    var frag = document.createDocumentFragment();
-    data.items.forEach(function (it) { frag.appendChild(renderItem(it, data.mode)); });
-    list.appendChild(frag);
+    renderMore();
+    window.scrollTo(0, 0);
   }
 
   /* ---- controller ---- */
   async function selectTopic(id) {
     state.activeId = id;
-    setActiveTab(id);
+    setActiveNav(id);
     if (state.topicCache.has(id)) { renderTopic(state.topicCache.get(id)); return; }
     var topic = state.index.topics.find(function (t) { return t.id === id; });
     if (!topic) { renderError("未找到主题 " + id); return; }
@@ -203,15 +242,22 @@
     }
   }
 
+  /* ---- mobile drawer ---- */
+  function openNav() { $("layout").classList.add("nav-open"); $("scrim").hidden = false; }
+  function closeNav() { $("layout").classList.remove("nav-open"); $("scrim").hidden = true; }
+
   async function init() {
+    $("loadMoreBtn").addEventListener("click", renderMore);
+    $("navToggle").addEventListener("click", openNav);
+    $("scrim").addEventListener("click", closeNav);
     try {
       var index = await loadIndex();
       state.index = index;
       var topics = index.topics || [];
       if (!topics.length) { renderError("index.json 没有主题。"); return; }
-      $("updatedAt").textContent = "更新 " + formatTime(topics[0].generated_at);
+      $("updatedAt").textContent = "更新于 " + formatTime(topics[0].generated_at);
       state.activeId = topics[0].id;
-      renderTabs(topics);
+      renderNav(topics);
       selectTopic(topics[0].id);
     } catch (e) {
       renderError("加载 index.json 失败:" + e.message);

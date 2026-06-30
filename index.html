@@ -6,31 +6,35 @@
     <title>个人多领域雷达</title>
     <meta name="description" content="按主题分轨的个人资讯雷达:前沿大模型、AI-Health、量化因子、新书、播客、实体雷达。" />
     <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./assets/radar.css?v=1" />
+    <link rel="stylesheet" href="./assets/radar.css?v=2" />
   </head>
   <body>
-    <main class="shell">
-      <header class="topbar">
-        <div class="topbar-title">
-          <h1>个人多领域雷达</h1>
-          <p class="topbar-tag">MULTI-TOPIC NEWS RADAR</p>
+    <div class="layout" id="layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <h1>多领域雷达</h1>
+          <p class="brand-tag">NEWS RADAR</p>
         </div>
-        <span class="updated" id="updatedAt">加载中…</span>
-      </header>
+        <nav class="topic-nav" id="topicNav" aria-label="主题导航"></nav>
+        <div class="sidebar-foot" id="updatedAt">加载中…</div>
+      </aside>
 
-      <nav class="tabbar" id="tabBar" role="tablist" aria-label="主题"></nav>
+      <main class="content">
+        <button class="nav-toggle" id="navToggle" type="button" aria-label="主题菜单">☰ 主题</button>
+        <section class="topic-header" id="topicHeader" aria-live="polite"></section>
+        <details class="health" id="healthDetail" hidden>
+          <summary>源状态详情</summary>
+          <div class="health-body" id="healthDetailBody"></div>
+        </details>
+        <div class="message" id="message" role="status" hidden></div>
+        <section class="news-list" id="newsList" aria-label="条目列表"></section>
+        <div class="load-more" id="loadMoreWrap" hidden>
+          <button id="loadMoreBtn" type="button">加载更多</button>
+        </div>
+      </main>
+    </div>
 
-      <section class="topic-header" id="topicHeader" aria-live="polite"></section>
-
-      <details class="health" id="healthDetail" hidden>
-        <summary>源状态详情</summary>
-        <div class="health-body" id="healthDetailBody"></div>
-      </details>
-
-      <div class="message" id="message" role="status" hidden></div>
-
-      <section class="news-list" id="newsList" aria-label="条目列表"></section>
-    </main>
+    <div class="scrim" id="scrim" hidden></div>
 
     <template id="itemTpl">
       <article class="card">
@@ -45,6 +49,6 @@
       </article>
     </template>
 
-    <script src="./assets/radar.js?v=1" defer></script>
+    <script src="./assets/radar.js?v=2" defer></script>
   </body>
 </html>
