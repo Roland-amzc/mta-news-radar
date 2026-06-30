@@ -164,7 +164,14 @@
   function renderItem(item, mode) {
     var node = $("itemTpl").content.cloneNode(true);
     var a = node.querySelector(".card-title");
-    a.textContent = htmlToText(item.title);
+    var subtitle = node.querySelector(".card-subtitle");
+    if (item.title_zh) {
+      a.textContent = item.title_zh;  // Chinese headline
+      subtitle.textContent = htmlToText(item.title);  // original title as muted subtitle
+      subtitle.hidden = false;
+    } else {
+      a.textContent = htmlToText(item.title);  // fallback: original title
+    }
     a.href = item.url;
     node.querySelector(".card-source").textContent = item.source_name;
     var sub = node.querySelector(".card-sublabel");
@@ -178,7 +185,8 @@
       score.hidden = false;
     }
     var summary = node.querySelector(".card-summary");
-    var text = cleanSummary(item.summary);
+    // summary_zh is already a clean digest -> just strip any markup; else clean the raw feed text
+    var text = item.summary_zh ? htmlToText(item.summary_zh) : cleanSummary(item.summary);
     if (text) { summary.textContent = text; summary.hidden = false; }
     return node;
   }
