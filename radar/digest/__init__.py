@@ -26,6 +26,9 @@ PROVIDER_PRESETS: dict[str, dict[str, str]] = {
     "glm": {"base_url": "https://open.bigmodel.cn/api/paas/v4", "model": "glm-4-flash"},
     "gemini": {"base_url": "https://generativelanguage.googleapis.com/v1beta/openai/", "model": "gemini-2.0-flash"},
     "openai": {"base_url": "https://api.openai.com/v1", "model": "gpt-4o-mini"},
+    # 火山方舟 Ark(字节/豆包):OpenAI 兼容。model 用你在控制台的接入点 ID(ep-...)
+    # 或已开通的模型名(如 doubao-1-5-pro-32k-250115)。key 形如 ark-...
+    "ark": {"base_url": "https://ark.cn-beijing.volces.com/api/v3", "model": "doubao-1-5-pro-32k-250115"},
 }
 
 
