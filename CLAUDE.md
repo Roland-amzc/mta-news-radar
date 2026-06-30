@@ -25,10 +25,11 @@ fetchers only for stable, public, high-signal sources.
 `task.md` / `checklist.md`;主题注册表:`topics.yaml`。
 
 ## 模块状态
-- 设计文档(spec/plan/task/checklist):已完成(2026-06-30)
+- 引擎设计文档(spec/plan/task/checklist):已完成(2026-06-30)
 - `topics.yaml` 注册表(7 主题 / 65 源,50 可运行):已完成
-- `radar/` 引擎(T0–T18):进行中
-- 前端主题 tab / GitHub Actions 调度 / Pages:未开始(后续独立 spec)
+- `radar/` 引擎(T0–T18,31 测 + 真实跑通 7 主题):已完成
+- 前端主题 tab(`index.html` + `assets/radar.{css,js}`,Preview 实测 8 AC):已完成
+- LLM 精判落地 / 非 feed 源适配器 / GitHub Actions 调度 / Pages:未开始(后续独立 spec)
 
 ## ADR
 
@@ -55,3 +56,9 @@ fetchers only for stable, public, high-signal sources.
 决策: 本期可运行类型 `rss/arxiv/arxiv_author/podcast/youtube`;`scrape/x_account`、`enabled:false`、`author_id:TODO` 的源解析但跳过(记 `status=skipped`),只有拼错的类型才报 `ConfigError`。
 原因: 让当前 `topics.yaml`(含 13 个 todo 源)合法可加载,避免 load 直接失败。
 代价: 非 feed 源(Anthropic/Meta/具身厂商等)暂无数据,需后续补适配器。
+
+### ADR-005: 前端重建干净多主题页,旧页归档
+日期: 2026-06-30
+决策: 新建 `index.html` + `assets/radar.{css,js}`(原生、无框架、无构建)读新数据;旧 AI 单主题页归档为 `index.legacy.html`。生成的 `data/index.json` 与 `data/<topic>/` 不入库(gitignore)。
+原因: 旧页重度耦合旧 AI 数据模型(栏目/Top3/WaytoAGI/AI相关度),改造成本高于重建;与引擎「干净切断」一致。
+代价: 旧页高级筛选/搜索等未迁移;新页搜索/排序/深色留待后续。
