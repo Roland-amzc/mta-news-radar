@@ -59,6 +59,7 @@ class Item:
     tier: str
     topic_id: str
     summary: str | None = None  # feed summary/description; scoring uses title + summary
+    audio_url: str | None = None  # podcast audio enclosure (reliable "listen" link)
     published: datetime | None = None
     sub_label: str | None = None
     score: float | None = None  # left None by none/entity scorer

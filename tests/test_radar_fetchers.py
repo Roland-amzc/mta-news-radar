@@ -57,6 +57,8 @@ def test_feed_parses_items_with_summary_and_time():
     assert first.published is not None and first.published.tzinfo is not None
     assert first.tier == "media" and first.sub_label == "model_release"
     assert first.topic_id == "frontier"
+    assert first.audio_url == "https://cdn.example.com/ep1.mp3"  # enclosure captured
+    assert items[1].audio_url is None  # no enclosure -> None
 
 
 def test_http_error_marks_failed():

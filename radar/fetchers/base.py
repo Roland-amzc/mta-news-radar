@@ -68,6 +68,13 @@ def entry_to_item(
     summary = entry.get("summary") or entry.get("description") or None
     if summary:
         summary = str(summary).strip() or None
+    audio_url = None
+    for enc in entry.get("enclosures") or []:
+        href = enc.get("href") or enc.get("url")
+        enc_type = (enc.get("type") or "").lower()
+        if href and (enc_type.startswith("audio") or not enc_type):
+            audio_url = href
+            break
     return Item(
         id=make_item_id(source.name, title, url),
         title=title,
@@ -76,6 +83,7 @@ def entry_to_item(
         tier=source.tier,
         topic_id=topic.id,
         summary=summary,
+        audio_url=audio_url,
         published=parse_published(entry, now),
         sub_label=source.sub_label,
     )
