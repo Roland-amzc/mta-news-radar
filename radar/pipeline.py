@@ -9,6 +9,7 @@ from radar.fetchers import DEFERRED_TYPES, get_fetcher
 from radar.fetchers.base import skipped_health
 from radar.models import Item, SourceHealth, SourceSpec, TopicResult, TopicSpec
 from radar.scorers import get_scorer
+from radar.scorers.base import Scorer
 
 _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 
@@ -52,9 +53,18 @@ def _rank_and_gate(items: list[Item], topic: TopicSpec) -> list[Item]:
 
 
 def run_topic(
-    topic: TopicSpec, now: datetime, *, max_feeds: int | None = None
+    topic: TopicSpec,
+    now: datetime,
+    *,
+    max_feeds: int | None = None,
+    scorer_overrides: dict[str, Scorer] | None = None,
 ) -> TopicResult:
-    """Run the full pipeline for one topic and return its TopicResult."""
+    """Run the full pipeline for one topic and return its TopicResult.
+
+    `scorer_overrides` lets the caller inject a runtime-configured scorer (e.g.
+    an LlmScorer wired to a cache + budget in runner.run_all()) for a given
+    topic.scorer name, taking priority over the stateless registry default.
+    """
 
     pool: list[Item] = []
     health: list[SourceHealth] = []
@@ -83,7 +93,8 @@ def run_topic(
     pool = dedupe(pool)
     after_dedup = len(pool)
 
-    scored = get_scorer(topic.scorer).score(pool, topic)
+    scorer = (scorer_overrides or {}).get(topic.scorer) or get_scorer(topic.scorer)
+    scored = scorer.score(pool, topic)
     final = _rank_and_gate(scored, topic)
 
     return TopicResult(

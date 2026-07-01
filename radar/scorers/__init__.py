@@ -14,8 +14,14 @@ _LLM = LlmScorer()
 SCORERS: dict[str, Scorer] = {
     "keyword": _KEYWORD,
     "none": _NONE,
-    "llm": _LLM,  # stub, delegates to keyword
-    "keyword_prefilter+llm": _LLM,  # prefilter happens in pipeline; scoring stubbed
+    # Default (unconfigured) instance: identical to keyword. runner.run_all()
+    # injects a real, budget/cache-backed LlmScorer via scorer_overrides when
+    # DIGEST_API_KEY/BASE_URL/MODEL are set (see radar.scorers.llm).
+    "llm": _LLM,
+    # frontier: keyword scoring is sufficient (arXiv volume already trimmed by
+    # the per-source prefilter upstream in pipeline.py); real LLM judging is
+    # reserved for ai_health/quant_factor, which ADR-003 flagged as weak.
+    "keyword_prefilter+llm": _KEYWORD,
 }
 
 

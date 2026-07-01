@@ -76,6 +76,21 @@ def test_topic_mode_sorted_by_score_and_gated(monkeypatch):
     assert scores == sorted(scores, reverse=True)
 
 
+def test_scorer_overrides_take_priority_over_registry(monkeypatch):
+    class FixedScorer:
+        def score(self, items, topic):
+            for item in items:
+                item.score, item.score_reason = 0.99, "overridden"
+            return items
+
+    _install(monkeypatch, {"S": [("agent LLM combo", NOW), ("totally unrelated", NOW)]})
+    result = run_topic(
+        _topic(sources=[_src("S")], score_gate=0.0), NOW,
+        scorer_overrides={"keyword": FixedScorer()},
+    )
+    assert all(i.score == 0.99 and i.score_reason == "overridden" for i in result.items)
+
+
 def test_entity_mode_collects_all_by_time(monkeypatch):
     items = {"S": [
         ("c", NOW - timedelta(hours=1)),
@@ -138,7 +153,7 @@ def test_runner_writes_topic_and_index(tmp_path):
 
 
 def test_runner_topic_error_still_writes(tmp_path, monkeypatch):
-    def boom(topic, now, *, max_feeds=None):
+    def boom(topic, now, *, max_feeds=None, scorer_overrides=None):
         raise RuntimeError("kaboom")
     monkeypatch.setattr(runner_mod, "run_topic", boom)
     cfg = _write_cfg(tmp_path, {

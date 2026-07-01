@@ -30,6 +30,7 @@ data/email-digest.json
 data/index.json
 data/*/
 data/digest-cache.json
+data/relevance-cache.json
 
 # Local OS/editor noise
 .DS_Store

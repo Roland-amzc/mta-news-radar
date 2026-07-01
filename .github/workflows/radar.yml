@@ -37,10 +37,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Restore digest cache
+      - name: Restore digest + relevance cache
         uses: actions/cache@v4
         with:
-          path: data/digest-cache.json
+          path: |
+            data/digest-cache.json
+            data/relevance-cache.json
           key: digest-cache-${{ github.run_id }}
           restore-keys: |
             digest-cache-
@@ -55,7 +57,7 @@ jobs:
           cp site.webmanifest _site/ 2>/dev/null || true
           cp -r assets _site/assets
           cp -r data _site/data
-          rm -f _site/data/digest-cache.json
+          rm -f _site/data/digest-cache.json _site/data/relevance-cache.json
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

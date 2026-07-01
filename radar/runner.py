@@ -11,6 +11,7 @@ from radar.digest.cache import DigestCache
 from radar.digest.service import DigestService
 from radar.models import TopicResult
 from radar.pipeline import run_topic
+from radar.scorers.llm import LlmScorer, RelevanceCache, build_relevance_client
 from radar.writer import write_index, write_topic
 
 
@@ -37,10 +38,20 @@ def run_all(
     digest_cache = DigestCache(Path(output_dir) / "digest-cache.json").load()
     digest_service = DigestService(build_digester(digest_config), digest_cache, digest_config)
 
+    relevance_client = build_relevance_client()
+    relevance_cache: RelevanceCache | None = None
+    if relevance_client is not None:
+        client, model = relevance_client
+        relevance_cache = RelevanceCache(Path(output_dir) / "relevance-cache.json").load()
+        llm_scorer = LlmScorer(client=client, model=model, cache=relevance_cache)
+    else:
+        llm_scorer = LlmScorer()  # unconfigured -> keyword fallback
+    scorer_overrides = {"llm": llm_scorer}
+
     results: list[TopicResult] = []
     for topic in topics:
         try:
-            result = run_topic(topic, now, max_feeds=max_feeds)
+            result = run_topic(topic, now, max_feeds=max_feeds, scorer_overrides=scorer_overrides)
             digest_service.process(result, topic)
         except Exception as exc:  # topic-level isolation
             result = TopicResult(
@@ -58,5 +69,7 @@ def run_all(
         results.append(result)
 
     digest_cache.save()
+    if relevance_cache is not None:
+        relevance_cache.save()
     write_index(results, output_dir)
     return results

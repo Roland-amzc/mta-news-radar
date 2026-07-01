@@ -42,6 +42,14 @@ fetchers only for stable, public, high-signal sources.
   `x_account`(Figure)仍无实现,留 `DEFERRED_TYPES`。entity_radar 的姚顺宇源保持 skipped——
   唯一可锚定的 arXiv ID(yao_s_2)只覆盖他转 AI 前的物理论文,接入会导致"实体雷达"里混入无关
   数据,故意不接(详见 topics.yaml 该条 note 与 ADR-008)。
+- `scorer=llm` 真实相关性判定(`radar/scorers/llm.py`):已完成(2026-07-01,范围仅
+  ai_health+quant_factor,详见 ADR-009)。复用 digest 层同一把 DeepSeek key,budget=200/次
+  运行(共享,非按主题各自 200)、按 item.id 缓存(`data/relevance-cache.json`,已进
+  `.gitignore`/Actions cache/`_site` 排除清单,与 digest-cache 同等对待)。本地无 key 情况
+  实跑验证:优雅降级为纯关键词打分(`score_reason` 仍是 `hits: ...` 格式),不崩溃、不产生
+  多余缓存文件。真实 LLM 判定质量待下次 GitHub Actions 跑(用真 key)后核实
+  `score_reason` 是否变成 LLM 生成的自然语言理由。frontier 的 `keyword_prefilter+llm`
+  改直接指向纯关键词 scorer,不再共享这个桩/真实现——原因见 ADR-009。
 - 分板块差异化呈现:未开始(后续独立 spec)
 
 ## ADR
@@ -94,3 +102,9 @@ fetchers only for stable, public, high-signal sources.
 决策: 新增 `radar/fetchers/scrape.py`(`ScrapeFetcher`,复用 `parse_published` 做日期归一化),`item_selector`/`title_selector`/`date_selector` 三个 CSS 选择器字段进 `SourceSpec`,由 topics.yaml 配置驱动——新增一个 scrape 源只改配置,不碰 `radar/` 代码(与 ADR-002 的可插拔原则一致)。`scrape` 从 `DEFERRED_TYPES` 移出、注册进 `FETCHERS`;`config.py` 相应加校验(enabled 的 scrape 源必须有 url+item_selector+title_selector,否则 ConfigError,与其余类型的"跑的源必须配对"一致)。范围上不追求一次性覆盖全部 12 个 scrape 站(与用户对齐:先试点见效再铺开),选 Anthropic News + 宇树 Unitree 两个代表性官网试点,`--only frontier` 真实网络验证通过(status=ok,标题/日期/链接均解析正确)。其余 9 个 scrape 源(Meta AI/DeepSeek/1X/π/智元/Isomorphic/Recursion/Insilico/The Browser)显式加 `enabled: false`(此前靠 `scrape` 类型本身被全量 deferred,现在类型已实现,必须显式关,否则会因缺选择器报 ConfigError 炸掉整个 topics.yaml 加载)。
 原因: 12 个站点 HTML 结构互不相同,一次性写全量易碎、难维护;选择器驱动比"一站点一 Python 文件"更符合 ADR-002 的分层(变化率高的东西——站点样式——放最外层配置,不进代码层)。选择器优先锚定语义标签(`h4`/`time`/`p.title`)而非 CSS-module 哈希类名(如 Anthropic 的 `FeaturedGrid-module-scss-module__W1FydW__title`),更扛得住前端重构。
 代价: 选择器仍是"读 DOM 结构猜的",目标站改版会让该源静默掉线为 `status=failed`(不会崩溯,但需要人工发现+补选择器,无自动告警机制)。X/Twitter(Figure,`x_account`)未处理——反爬更强,通常要付费 API 或登录态 cookie,单独放行程外。姚顺宇的 `arxiv_author` 调研发现唯一可锚定 ID(`yao_s_2`)只覆盖他转 AI 前的物理论文,不含 Anthropic/DeepMind 时期工作,故意保持 skipped 不接入(见 topics.yaml 该条 note),非 arXiv 监控渠道(个人站/官方公告)属 scrape 范畴,未来若要盯他可另起一个 scrape 源。
+
+### ADR-009: `scorer=llm` 落地真实相关性判定,范围只 ai_health/quant_factor,不含 frontier
+日期: 2026-07-01
+决策: `radar/scorers/llm.py` 的 `LlmScorer` 从纯 keyword 桩改为真实 LLM 判定——复用 digest 层同一把 OpenAI 兼容 key(`DIGEST_API_KEY`/`DIGEST_BASE_URL`/`DIGEST_MODEL`,同 ADR-007),不新增 GitHub secret。keyword 打分作为**每条都先算好的基线**,LLM 判定只在有 client 配置、预算未耗尽、缓存未命中时才覆盖;任一环节失败(超预算/解析失败/网络异常)都保留 keyword 基线分,主题产出永远不会因为 LLM 掉线而空手。`SCORERS` 注册表里 `keyword_prefilter+llm`(frontier 用)改直接指向纯 keyword 实现,**不再共享** `llm` 那个真实现——frontier 一次产出 754 条(vs ai_health 147 + quant_factor 15 = 162 条),真接进来会让日常 LLM 调用量涨 5.6 倍,而 frontier 官方源信号本来就强、关键词打分够用,ADR-003 原话点名"相关性偏弱"的只有 health/quant 两个主题。`pipeline.run_topic()` 新增 `scorer_overrides` 参数、`runner.run_all()` 里按 env 是否配置构造真实/桩 `LlmScorer` 并注入——之所以不能像 fetcher 那样走纯无状态注册表,是因为真实打分需要运行时才知道的 cache 路径(挂在 `output_dir` 下)和跨主题共享的预算计数器,这两个 `radar.scorers.get_scorer()` 的静态单例拿不到。
+原因: 真花钱的调用必须能就低不就高——宁可某天判定失败退回关键词,也不能让一个主题因为 LLM 掉线而空产出(与 digest 层"never raises"哲学一致,ADR-006/007 已验证过这个模式)。范围收窄到 ai_health/quant_factor 是显式用户决策(之前问过,选了"只两个主题",非我自行决定)。
+代价: 本地无法验证真实判定质量——DeepSeek key 只在 GitHub Secrets 里,不下沉到本地环境,真实效果要等下次 Actions 跑完看 `score_reason` 是否变成自然语言(而非 `hits: x, y` 关键词格式)才能确认。budget=200/次运行是硬编码常量非配置项,ai_health+quant_factor 冷启动共 162 条勉强够,如果这两个主题源增多导致单次新条目超预算,多出的会静默退回关键词分(不报错,但需要人工发现)。
