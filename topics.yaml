@@ -56,22 +56,32 @@ topics:
         type: scrape
         tier: official
         sub_label: model_release
-        status: todo
-        note: 无官方 RSS（/rss.xml /news/rss.xml 均 404）。候选 rsshub 桥接 https://rsshub.app/anthropic/news —— 需自建 rsshub 或核验公共实例可用性。
+        status: ok
+        enabled: true
+        item_selector: 'a[href^="/news/"]'
+        title_selector: "h4"
+        date_selector: "time"
+        note: >
+          无官方 RSS（/rss.xml /news/rss.xml 均 404），已接 scrape 适配器
+          (2026-07-01 试点验证)。选择器锚在语义标签(h4/time)而非 CSS-module
+          哈希类名，扛得住样式重构。若 Anthropic 改版导致选择器失效，
+          engine 会把该源标 status=failed（selector matched no usable cards）。
       - name: Meta AI 官博
         url: "https://ai.meta.com/blog/"
         type: scrape
         tier: official
         sub_label: model_release
         status: todo
-        note: 未找到可用 RSS（/blog/rss/ /blog/feed/ 404，/blog/rss.xml 400）。需抓取或找第三方桥。
+        enabled: false        # scrape 已实现，但本源未核选择器，先禁用避免 ConfigError
+        note: 未找到可用 RSS（/blog/rss/ /blog/feed/ 404，/blog/rss.xml 400）。需抓取或找第三方桥。scrape 适配器已就绪(见 Anthropic News)，补 item_selector/title_selector 后把 enabled 改 true 即可接入。
       - name: DeepSeek 官博
         url: "https://api-docs.deepseek.com/news"
         type: scrape
         tier: official
         sub_label: model_release
         status: todo
-        note: feed 地址未知，需核验（官网/公众号为主，可能需抓取）。
+        enabled: false        # scrape 已实现，但本源未核选择器，先禁用避免 ConfigError
+        note: feed 地址未知，需核验（官网/公众号为主，可能需抓取）。scrape 适配器已就绪(见 Anthropic News)，补选择器后把 enabled 改 true 即可接入。
       - name: xAI News
         url: "https://x.ai/news/rss.xml"
         type: rss
@@ -97,10 +107,23 @@ topics:
         sub_label: embodied
         status: todo
         note: 官网无 RSS（404）。建议走引擎现有 X/SocialData 路盯官方账号，或抓取 news 页。
-      - { name: "1X",                   url: "https://www.1x.tech/",                       type: scrape, handle: "@1x_tech",            tier: official, sub_label: embodied, status: todo, note: "无 RSS，需抓取/盯 X 账号" }
-      - { name: "Physical Intelligence (π)", url: "https://www.physicalintelligence.company/", type: scrape, handle: "@physical_int", tier: official, sub_label: embodied, status: todo, note: "无 RSS，研究博客需抓取" }
-      - { name: "宇树 Unitree",          url: "https://www.unitree.com/",                   type: scrape, tier: official, sub_label: embodied, status: todo, note: "国内厂商，无英文 RSS；可能需公众号/微博适配器" }
-      - { name: "智元 AgiBot",           url: "https://www.zhiyuan-robot.com/",             type: scrape, tier: official, sub_label: embodied, status: todo, note: "同上，国内厂商撞墙，暂缓" }
+      - { name: "1X",                   url: "https://www.1x.tech/",                       type: scrape, handle: "@1x_tech",            tier: official, sub_label: embodied, status: todo, enabled: false, note: "无 RSS，需抓取/盯 X 账号。scrape 适配器已就绪(见 Anthropic News/宇树)，补选择器后 enabled 改 true" }
+      - { name: "Physical Intelligence (π)", url: "https://www.physicalintelligence.company/", type: scrape, handle: "@physical_int", tier: official, sub_label: embodied, status: todo, enabled: false, note: "无 RSS，研究博客需抓取。scrape 适配器已就绪，补选择器后 enabled 改 true" }
+      - name: 宇树 Unitree
+        url: "https://www.unitree.com/news/"
+        type: scrape
+        tier: official
+        sub_label: embodied
+        status: ok
+        enabled: true
+        item_selector: 'a[href^="/news/"]'
+        title_selector: "p.title"
+        date_selector: "p.date"
+        note: >
+          国内厂商无英文 RSS，已接 scrape 适配器(2026-07-01 试点验证)。原
+          url https://www.unitree.com/ 是产品导航首页无新闻列表，实际新闻页
+          在 /news（302 跳转到 /news/，已改为直连 /news/ 避免重定向依赖）。
+      - { name: "智元 AgiBot",           url: "https://www.zhiyuan-robot.com/",             type: scrape, tier: official, sub_label: embodied, status: todo, enabled: false, note: "同上，国内厂商撞墙，暂缓。scrape 适配器已就绪，补选择器后 enabled 改 true" }
 
   # === 2. AI-Health：药物发现 + CDMO ======================================
   - id: ai_health
@@ -118,9 +141,9 @@ topics:
       - { name: FierceBiotech,               url: "https://www.fiercebiotech.com/rss/xml",     type: rss, tier: media,    status: ok }
       - { name: FiercePharma,                url: "https://www.fiercepharma.com/rss/xml",      type: rss, tier: media,    status: ok }
       - { name: STAT News,                   url: "https://www.statnews.com/feed/",            type: rss, tier: media,    status: ok }
-      - { name: Isomorphic Labs,  url: "https://www.isomorphiclabs.com/articles", type: scrape, tier: official, status: todo, note: "公司博客，RSS 未知，需核验/抓取" }
-      - { name: Recursion,        url: "https://www.recursion.com/news",          type: scrape, tier: official, status: todo, note: "RSS 未知" }
-      - { name: Insilico Medicine,url: "https://insilico.com/news",               type: scrape, tier: official, status: todo, note: "RSS 未知" }
+      - { name: Isomorphic Labs,  url: "https://www.isomorphiclabs.com/articles", type: scrape, tier: official, status: todo, enabled: false, note: "公司博客，RSS 未知，需核验/抓取。scrape 适配器已就绪(见 frontier/Anthropic News)，补选择器后 enabled 改 true" }
+      - { name: Recursion,        url: "https://www.recursion.com/news",          type: scrape, tier: official, status: todo, enabled: false, note: "RSS 未知。scrape 适配器已就绪，补选择器后 enabled 改 true" }
+      - { name: Insilico Medicine,url: "https://insilico.com/news",               type: scrape, tier: official, status: todo, enabled: false, note: "RSS 未知。scrape 适配器已就绪，补选择器后 enabled 改 true" }
     note: ⚠️ 药明系(WuXi) 深度信息在 A股/H股公告(🟡)，暂缓，以后接公告适配器。
 
   # === 3. 量化因子研究 ====================================================
@@ -154,7 +177,7 @@ topics:
       - { name: Five Books,            url: "https://fivebooks.com/feed/",                  type: rss, tier: media,    status: ok }
       - { name: Marginal Revolution,   url: "https://marginalrevolution.com/feed",          type: rss, tier: self_media, status: ok }
       - { name: Astral Codex Ten,      url: "https://www.astralcodexten.com/feed",          type: rss, tier: self_media, status: ok }
-      - { name: The Browser,           url: "https://thebrowser.com/",                      type: scrape, tier: media, status: todo, note: "付费订阅，无公开全文 RSS，需核验" }
+      - { name: The Browser,           url: "https://thebrowser.com/",                      type: scrape, tier: media, status: todo, enabled: false, note: "付费订阅，无公开全文 RSS，需核验。scrape 适配器已就绪，补选择器后 enabled 改 true" }
     note: 作者新书预告靠主题 7（盯人）兜底。
 
   # === 5. 中文科技播客（按嘉宾打标签）=====================================
@@ -205,10 +228,22 @@ topics:
       - name: 姚顺宇 (Google DeepMind)
         type: arxiv_author
         author_id: "TODO"
-        enabled: false        # 本期禁用：author_id 未确认，引擎跳过(status=skipped)
+        enabled: false        # 本期禁用：无可用 arXiv 身份，引擎跳过(status=skipped)
         tier: entity
         status: todo
-        note: ⚠️ 必须用 arXiv 作者 ID 锚定，防与「姚顺雨 / Shunyu Yao」(ReAct 作者, OpenAI→腾讯) 同名混淆。需人工核验确定其 arXiv author identifier（https://arxiv.org/a/<id>）。补到 author_id 后把 enabled 改成 true。
+        note: >
+          ⚠️ 已人工核验(2026-07-01)：确认「姚顺宇」(清华物理→斯坦福理论物理博士→
+          2024入职Anthropic→2026-09跳槽Google DeepMind任Senior Staff Research
+          Scientist)与「姚顺雨/Shunyu Yao」(ReAct论文作者, Princeton→OpenAI→
+          腾讯首席AI科学家)确系两人，英文罗马拼音撞了，需锚定作者ID防混淆。
+          但唯一能干净定位到姚顺宇本人的 arXiv 作者页是 arxiv.org/a/yao_s_2——
+          该ID下17篇论文全是他转AI之前(2017-2024)的物理学论文(非厄米拓扑系统/
+          量子引力)，不含他在Anthropic/DeepMind的AI/agent工作(大厂内部研究常不
+          公开发arXiv，或发了但未挂可辨识身份)。接入yao_s_2会在"实体雷达"里吐出
+          一堆无关物理论文，与"盯人AI动态"的用途不符。故意保持 skipped，不接入
+          错误数据。若他未来以本人身份发AI方向论文，可在此补上新author_id。
+          非arXiv监控(个人站alfredyao.github.io / 官方公告页)属scrape类适配器，
+          另案处理，不在本次范围内。
       - { name: "Simon Willison ⭐⭐⭐", url: "https://simonwillison.net/atom/everything/", type: rss, tier: entity, status: ok }
       - { name: "Nathan Lambert (Interconnects)", url: "https://www.interconnects.ai/feed", type: rss, tier: entity, status: ok }
       - { name: "Lilian Weng",        url: "https://lilianweng.github.io/index.xml",     type: rss, tier: entity, status: ok }

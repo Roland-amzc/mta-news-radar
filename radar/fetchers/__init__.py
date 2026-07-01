@@ -5,9 +5,11 @@ from __future__ import annotations
 from radar.fetchers.arxiv_author import ArxivAuthorFetcher
 from radar.fetchers.base import Fetcher
 from radar.fetchers.feed import FeedFetcher
+from radar.fetchers.scrape import ScrapeFetcher
 
 _FEED = FeedFetcher()
 _ARXIV_AUTHOR = ArxivAuthorFetcher()
+_SCRAPE = ScrapeFetcher()
 
 # rss / podcast / youtube / arxiv are all plain feeds -> one implementation.
 FETCHERS: dict[str, Fetcher] = {
@@ -16,10 +18,11 @@ FETCHERS: dict[str, Fetcher] = {
     "youtube": _FEED,
     "arxiv": _FEED,
     "arxiv_author": _ARXIV_AUTHOR,
+    "scrape": _SCRAPE,
 }
 
 # Known-but-not-yet-implemented types: parsed by config, skipped by pipeline.
-DEFERRED_TYPES: set[str] = {"scrape", "x_account"}
+DEFERRED_TYPES: set[str] = {"x_account"}
 
 
 def get_fetcher(source_type: str) -> Fetcher:

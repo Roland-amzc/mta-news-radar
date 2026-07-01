@@ -49,13 +49,41 @@ def test_current_topics_yaml_loads_all_seven():
 
 def test_deferred_and_disabled_sources_do_not_fail(tmp_path):
     data = {"version": 1, "topics": [_topic(sources=[
-        {"name": "scrapeme", "type": "scrape", "tier": "official"},          # no url, deferred
+        {"name": "xme", "type": "x_account", "tier": "official"},            # no url, deferred type
         {"name": "todoauthor", "type": "arxiv_author", "tier": "entity", "author_id": "TODO"},
         {"name": "off", "type": "rss", "tier": "media", "enabled": False},   # disabled, no url
         {"name": "ok", "type": "rss", "tier": "media", "url": "https://x/feed"},
     ])]}
     topics = load_topics(_write(tmp_path, data))
     assert len(topics[0].sources) == 4  # all parsed, none dropped
+
+
+def test_scrape_requires_selectors_when_enabled(tmp_path):
+    data = {"topics": [_topic(sources=[
+        {"name": "S", "type": "scrape", "tier": "official", "url": "https://x/news"},
+    ])]}
+    with pytest.raises(ConfigError):
+        load_topics(_write(tmp_path, data))
+
+
+def test_disabled_scrape_source_does_not_fail(tmp_path):
+    data = {"topics": [_topic(sources=[
+        {"name": "S", "type": "scrape", "tier": "official", "enabled": False},  # no url/selectors
+    ])]}
+    topics = load_topics(_write(tmp_path, data))
+    assert len(topics[0].sources) == 1  # parsed, not dropped, not validated
+
+
+def test_enabled_scrape_source_with_selectors_loads(tmp_path):
+    data = {"topics": [_topic(sources=[
+        {"name": "S", "type": "scrape", "tier": "official", "url": "https://x/news",
+         "item_selector": "a.card", "title_selector": ".title", "date_selector": ".date"},
+    ])]}
+    topics = load_topics(_write(tmp_path, data))
+    source = topics[0].sources[0]
+    assert source.item_selector == "a.card"
+    assert source.title_selector == ".title"
+    assert source.date_selector == ".date"
 
 
 def test_unknown_type_raises(tmp_path):

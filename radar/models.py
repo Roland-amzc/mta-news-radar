@@ -21,7 +21,7 @@ class SourceSpec:
     """One source within a topic, as declared in topics.yaml."""
 
     name: str
-    type: str  # rss | arxiv | arxiv_author | podcast | youtube | (deferred: scrape | x_account)
+    type: str  # rss | arxiv | arxiv_author | podcast | youtube | scrape | (deferred: x_account)
     tier: str  # official | media | aggregator | self_media | entity
     url: str | None = None  # arxiv_author may have no url (built from author_id)
     sub_label: str | None = None
@@ -30,6 +30,9 @@ class SourceSpec:
     host: str | None = None  # podcast host (passthrough)
     enabled: bool = True
     status: str | None = None  # yaml's ok/verify/todo, metadata passthrough
+    item_selector: str | None = None  # scrape: CSS selector for each card (must be or contain an <a href>)
+    title_selector: str | None = None  # scrape: CSS selector for title, scoped within item_selector
+    date_selector: str | None = None  # scrape: CSS selector for a date string, scoped within item_selector
 
 
 @dataclass(frozen=True)

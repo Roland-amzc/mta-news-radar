@@ -64,12 +64,26 @@ def _build_source(raw: dict[str, Any], topic_id: str) -> SourceSpec:
     author_id = raw.get("author_id")
     url = raw.get("url")
 
+    item_selector = raw.get("item_selector")
+    title_selector = raw.get("title_selector")
+
     # Validate field completeness only for sources we will actually run.
     if not _is_skipped(type_, enabled, author_id):
         if type_ == "arxiv_author":
             if not author_id or author_id == "TODO":
                 raise ConfigError(
                     f"[{topic_id}] arxiv_author source {name!r} needs a valid author_id"
+                )
+        elif type_ == "scrape":
+            if not url:
+                raise ConfigError(f"[{topic_id}] scrape source {name!r} needs a 'url'")
+            if not item_selector:
+                raise ConfigError(
+                    f"[{topic_id}] scrape source {name!r} needs 'item_selector'"
+                )
+            if not title_selector:
+                raise ConfigError(
+                    f"[{topic_id}] scrape source {name!r} needs 'title_selector'"
                 )
         elif not url:
             raise ConfigError(f"[{topic_id}] source {name!r} needs a 'url'")
@@ -85,6 +99,9 @@ def _build_source(raw: dict[str, Any], topic_id: str) -> SourceSpec:
         host=raw.get("host"),
         enabled=enabled,
         status=raw.get("status"),
+        item_selector=str(item_selector) if item_selector else None,
+        title_selector=str(title_selector) if title_selector else None,
+        date_selector=str(raw.get("date_selector")) if raw.get("date_selector") else None,
     )
 
 

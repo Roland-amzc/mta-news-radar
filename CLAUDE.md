@@ -31,8 +31,18 @@ fetchers only for stable, public, high-signal sources.
 - 前端主题 tab(`index.html` + `assets/radar.{css,js}`,Preview 实测 8 AC):已完成
 - 内容加工层(`radar/digest/`,产中文 title_zh/summary_zh;多 provider:OpenAI 兼容 DeepSeek/Qwen/Kimi/GLM/Gemini 或 Anthropic):已完成(注入桩验证;真实质量待配置某家 key)
 - 前端消费 zh 字段(卡片显示中文标题+原文副标题+中文摘要,DeepSeek 实测 Preview 验证):已完成
-- GitHub Actions 每天跑 + Pages 部署(`.github/workflows/radar.yml`):代码完成,本地验通过;GitHub 侧实跑待用户 push + 配 Secret/Pages
-- 分板块差异化呈现 / 非 feed 源适配器:未开始(后续独立 spec)
+- GitHub Actions 每天跑 + Pages 部署(`.github/workflows/radar.yml`):已完成(2026-07-01)。`feat/radar-engine` 已合并入 `master` 并 push;Secret `DIGEST_API_KEY`(DeepSeek)+ Pages(Source=Actions)已配置;手动 Run workflow 跑绿(2分40秒),线上 `data/frontier/latest.json` 实测含真实 `title_zh` 中文翻译。线上地址:https://roland-amzc.github.io/mta-news-radar/
+- 非 feed 源适配器(`radar/fetchers/scrape.py`):试点完成(2026-07-01)。选择器驱动的通用
+  `ScrapeFetcher`(一份实现 + topics.yaml 配 CSS 选择器,不写 per-site 代码),已注册进
+  `FETCHERS`、移出 `DEFERRED_TYPES`;9 个测试(fixtures + 真实站点结构建模)全绿。试点 2
+  源:Anthropic News + 宇树 Unitree,`--only frontier` 真实抓取验证 `status=ok`(fetched=4/9,
+  日期解析、相对链接转绝对链接均正确;Unitree 9 条被 72h 窗口过滤属预期,非故障)。其余 9 个
+  scrape 源(Meta AI/DeepSeek/1X/π/智元/Isomorphic/Recursion/Insilico/The Browser)显式
+  `enabled: false`,补 item_selector/title_selector 后改 true 即可接入,不用碰 `radar/` 代码。
+  `x_account`(Figure)仍无实现,留 `DEFERRED_TYPES`。entity_radar 的姚顺宇源保持 skipped——
+  唯一可锚定的 arXiv ID(yao_s_2)只覆盖他转 AI 前的物理论文,接入会导致"实体雷达"里混入无关
+  数据,故意不接(详见 topics.yaml 该条 note 与 ADR-008)。
+- 分板块差异化呈现:未开始(后续独立 spec)
 
 ## ADR
 
@@ -78,3 +88,9 @@ fetchers only for stable, public, high-signal sources.
 决策: 因用户只有 Claude Coding Plan 订阅(≠ Anthropic 按量 API),新增通用 `OpenAICompatibleDigester`,由 env 驱动(`DIGEST_API_KEY`/`DIGEST_BASE_URL`/`DIGEST_MODEL`)。一个适配器覆盖 DeepSeek / 通义 Qwen / Kimi / 智谱 GLM / Gemini(OpenAI 端点)/ OpenAI(`PROVIDER_PRESETS` 给 base_url+model)。工厂优先级:OpenAI 兼容 > Anthropic > Noop。
 原因: 订阅 OAuth 不能调 Messages API,且 GitHub Actions 里也只能放第三方 secret;中文输出+省钱首选 DeepSeek/Qwen 等。`Digester` 协议(ADR-002 依赖反转)正是为此留的活口——只多一个实现。
 代价: 各家结构化输出能力不一,统一改成 prompt 指示 JSON + 容错解析(Claude 也随之去掉 output_config),可靠性略低于原生 schema 约束但跨家通用。
+
+### ADR-008: 非 feed 源用「选择器驱动的通用 ScrapeFetcher」,不写 per-site 代码;试点 2/12 站
+日期: 2026-07-01
+决策: 新增 `radar/fetchers/scrape.py`(`ScrapeFetcher`,复用 `parse_published` 做日期归一化),`item_selector`/`title_selector`/`date_selector` 三个 CSS 选择器字段进 `SourceSpec`,由 topics.yaml 配置驱动——新增一个 scrape 源只改配置,不碰 `radar/` 代码(与 ADR-002 的可插拔原则一致)。`scrape` 从 `DEFERRED_TYPES` 移出、注册进 `FETCHERS`;`config.py` 相应加校验(enabled 的 scrape 源必须有 url+item_selector+title_selector,否则 ConfigError,与其余类型的"跑的源必须配对"一致)。范围上不追求一次性覆盖全部 12 个 scrape 站(与用户对齐:先试点见效再铺开),选 Anthropic News + 宇树 Unitree 两个代表性官网试点,`--only frontier` 真实网络验证通过(status=ok,标题/日期/链接均解析正确)。其余 9 个 scrape 源(Meta AI/DeepSeek/1X/π/智元/Isomorphic/Recursion/Insilico/The Browser)显式加 `enabled: false`(此前靠 `scrape` 类型本身被全量 deferred,现在类型已实现,必须显式关,否则会因缺选择器报 ConfigError 炸掉整个 topics.yaml 加载)。
+原因: 12 个站点 HTML 结构互不相同,一次性写全量易碎、难维护;选择器驱动比"一站点一 Python 文件"更符合 ADR-002 的分层(变化率高的东西——站点样式——放最外层配置,不进代码层)。选择器优先锚定语义标签(`h4`/`time`/`p.title`)而非 CSS-module 哈希类名(如 Anthropic 的 `FeaturedGrid-module-scss-module__W1FydW__title`),更扛得住前端重构。
+代价: 选择器仍是"读 DOM 结构猜的",目标站改版会让该源静默掉线为 `status=failed`(不会崩溯,但需要人工发现+补选择器,无自动告警机制)。X/Twitter(Figure,`x_account`)未处理——反爬更强,通常要付费 API 或登录态 cookie,单独放行程外。姚顺宇的 `arxiv_author` 调研发现唯一可锚定 ID(`yao_s_2`)只覆盖他转 AI 前的物理论文,不含 Anthropic/DeepMind 时期工作,故意保持 skipped 不接入(见 topics.yaml 该条 note),非 arXiv 监控渠道(个人站/官方公告)属 scrape 范畴,未来若要盯他可另起一个 scrape 源。

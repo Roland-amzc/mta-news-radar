@@ -90,7 +90,7 @@ def test_entity_mode_collects_all_by_time(monkeypatch):
 
 def test_skips_deferred_and_disabled(monkeypatch):
     _install(monkeypatch, {"S3": [("agent live", NOW)]})
-    sources = [_src("S1", type_="scrape"), _src("S2", enabled=False), _src("S3")]
+    sources = [_src("S1", type_="x_account"), _src("S2", enabled=False), _src("S3")]
     result = run_topic(_topic(sources=sources), NOW)
     by_name = {h.source_name: h.status for h in result.source_health}
     assert by_name == {"S1": "skipped", "S2": "skipped", "S3": "ok"}
@@ -99,7 +99,7 @@ def test_skips_deferred_and_disabled(monkeypatch):
 
 def test_empty_topic_all_skipped_is_valid(monkeypatch):
     _install(monkeypatch, {})
-    sources = [_src("S1", type_="scrape"), _src("S2", enabled=False)]
+    sources = [_src("S1", type_="x_account"), _src("S2", enabled=False)]
     result = run_topic(_topic(sources=sources), NOW)
     assert result.items == []
     assert result.topic_error is None
