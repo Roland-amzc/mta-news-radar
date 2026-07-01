@@ -91,6 +91,22 @@ def test_scorer_overrides_take_priority_over_registry(monkeypatch):
     assert all(i.score == 0.99 and i.score_reason == "overridden" for i in result.items)
 
 
+def test_scorer_last_stats_surface_prefixed_in_topic_result(monkeypatch):
+    class StatsScorer:
+        last_stats = {"llm_calls": 3, "cache_hits": 1, "fallback": 0, "configured": 1}
+
+        def score(self, items, topic):
+            return items
+
+    _install(monkeypatch, {"S": [("agent LLM combo", NOW)]})
+    result = run_topic(
+        _topic(sources=[_src("S")]), NOW, scorer_overrides={"keyword": StatsScorer()},
+    )
+    assert result.stats["scoring_llm_calls"] == 3
+    assert result.stats["scoring_cache_hits"] == 1
+    assert result.stats["scoring_configured"] == 1
+
+
 def test_entity_mode_collects_all_by_time(monkeypatch):
     items = {"S": [
         ("c", NOW - timedelta(hours=1)),

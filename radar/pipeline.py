@@ -97,6 +97,19 @@ def run_topic(
     scored = scorer.score(pool, topic)
     final = _rank_and_gate(scored, topic)
 
+    stats = {
+        "fetched_total": fetched_total,
+        "after_prefilter": after_prefilter,
+        "after_window": after_window,
+        "after_dedup": after_dedup,
+        "final": len(final),
+    }
+    # Optional: scorers (e.g. LlmScorer) may report their own run stats, prefixed
+    # to avoid colliding with the digest layer's own llm_calls/from_cache keys.
+    scorer_stats = getattr(scorer, "last_stats", None)
+    if scorer_stats:
+        stats.update({f"scoring_{k}": v for k, v in scorer_stats.items()})
+
     return TopicResult(
         topic_id=topic.id,
         name=topic.name,
@@ -105,11 +118,5 @@ def run_topic(
         generated_at=now.astimezone(timezone.utc).isoformat(),
         items=final,
         source_health=health,
-        stats={
-            "fetched_total": fetched_total,
-            "after_prefilter": after_prefilter,
-            "after_window": after_window,
-            "after_dedup": after_dedup,
-            "final": len(final),
-        },
+        stats=stats,
     )

@@ -126,26 +126,39 @@ class LlmScorer:
         self._model = model
         self._cache = cache
         self._budget = budget  # decremented across calls; shared budget for a whole run
+        # Diagnostics for the most recent score() call; pipeline.run_topic() copies
+        # these into TopicResult.stats (prefixed relevance_*) so a run's output JSON
+        # shows whether the LLM path actually ran, independent of score_reason text.
+        self.last_stats: dict[str, int] = {}
 
     def score(self, items: list[Item], topic: TopicSpec) -> list[Item]:
         self._fallback.score(items, topic)
         if self._client is None:
+            self.last_stats = {"configured": 0, "llm_calls": 0, "cache_hits": 0, "fallback": len(items)}
             return items
+        llm_calls = cache_hits = fallback = 0
         for item in items:
             cached = self._cache.get(item.id) if self._cache else None
             if cached is not None:
                 item.score, item.score_reason = cached
+                cache_hits += 1
                 continue
             if self._budget <= 0:
+                fallback += 1
                 continue  # keep keyword fallback score already set
             self._budget -= 1
             judged = self._judge_one(item, topic)
             if judged is None:
+                fallback += 1
                 continue  # keep keyword fallback score already set
             score, reason = judged
             item.score, item.score_reason = score, reason
+            llm_calls += 1
             if self._cache:
                 self._cache.put(item.id, score, reason)
+        self.last_stats = {
+            "configured": 1, "llm_calls": llm_calls, "cache_hits": cache_hits, "fallback": fallback,
+        }
         return items
 
     def _judge_one(self, item: Item, topic: TopicSpec) -> tuple[float, str] | None:
