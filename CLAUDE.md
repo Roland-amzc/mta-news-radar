@@ -50,6 +50,30 @@ fetchers only for stable, public, high-signal sources.
   多余缓存文件。真实 LLM 判定质量待下次 GitHub Actions 跑(用真 key)后核实
   `score_reason` 是否变成 LLM 生成的自然语言理由。frontier 的 `keyword_prefilter+llm`
   改直接指向纯关键词 scorer,不再共享这个桩/真实现——原因见 ADR-009。
+- 前端美工 v2 + 信息源健康修复:已完成(2026-07-02)。前端(`assets/radar.{css,js}` bump 到
+  `?v=3`):内容列 `max-width:900px; margin:0 auto` 居中(消除宽屏右侧大片空白);卡片结构统一
+  为 标题/副标题/摘要/footer 元信息行(source·time·score 移到带上边框的 footer,视觉更整齐);
+  摘要去掉 2 行 `-webkit-line-clamp` 硬截断——中文 digest 摘要(`summary_zh`)整段完整显示,长英文
+  原文摘要(>320 字)默认收起 3 行 + 「展开全文/收起」按钮;`radar.js` 的 `cleanSummary()` 新增正则
+  剥离 arXiv 摘要前缀噪声(`arXiv:xxxx Announce Type: xxx Abstract:`)。Preview 桌面/移动实测:居中
+  生效(content 900px 居中)、展开按钮 68px↔316px 切换、arXiv 前缀已清、192 测试全绿。
+  信息源:根因是 fetcher 用机器人 UA(`mta-news-radar/0.1`)被 Substack/Cloudflare 403(详见
+  ADR-010)。`radar/fetchers/{feed,scrape}.py` 改真实浏览器 UA + Accept 头,一举修复
+  Latent Space(播)/Endpoints News 等;QuantSeeker→`www.quantseeker.com/feed`、Import
+  AI→`jack-clark.net/feed/`(Substack 自有域名不受 `*.substack.com` 边缘 IP 拦截)、Cognitive
+  Revolution→`feeds.megaphone.fm/RINTP3108857801`(真音频 feed,354 条);xAI(404 无 RSS)与
+  MIT Press(Cloudflare 硬拦,非 UA 可解)显式 `enabled:false` 止血。本地跑 4 主题实测所有原失败源
+  回 `status=ok`(Nature 两源本地网络不可达但线上一直 ok,非回归)。
+- scrape 源铺开(第二批)+ 信息源掉线告警:已完成(2026-07-02)。探测 8 个 disabled scrape 站,
+  只 Physical Intelligence(π)一个干净可接(SSR 出 blog 卡片、标题+日期均能解析,已 enable);
+  其余 6 站均有硬障碍且**如实记进 topics.yaml 各源 note**:Meta AI(400 边缘拦)、DeepSeek
+  (404 无静态新闻页)、1X(Next.js SPA)、智元(SPA/复杂+无日期)、Recursion(000 反爬)、
+  Isomorphic/Insilico(SSR 可抓但卡片**无机器可读日期**,接入会因 `_within_window` 对无日期条目
+  返回 True 而把全部历史文章永久灌进 1 周窗口——宁缺毋滥,保持 disabled)。The Browser 付费跳过。
+  告警:新增 `scripts/check_source_health.py`——跑完读各主题 source_health,只对 `status=failed`
+  (enabled 源真抓失败)告警,`skipped`/`disabled`/`ok`-0-条 均不误报;GitHub Actions 里发
+  `::warning::` 注解 + step-summary 表格,**恒 exit 0 不阻断部署**(`--fail-over N` 可选让 CI 变红)。
+  已接进 `.github/workflows/radar.yml`(Run engine 之后一步)。5 个新测试覆盖告警口径,全套 197 测全绿。
 - 分板块差异化呈现:未开始(后续独立 spec)
 
 ## ADR
@@ -108,3 +132,9 @@ fetchers only for stable, public, high-signal sources.
 决策: `radar/scorers/llm.py` 的 `LlmScorer` 从纯 keyword 桩改为真实 LLM 判定——复用 digest 层同一把 OpenAI 兼容 key(`DIGEST_API_KEY`/`DIGEST_BASE_URL`/`DIGEST_MODEL`,同 ADR-007),不新增 GitHub secret。keyword 打分作为**每条都先算好的基线**,LLM 判定只在有 client 配置、预算未耗尽、缓存未命中时才覆盖;任一环节失败(超预算/解析失败/网络异常)都保留 keyword 基线分,主题产出永远不会因为 LLM 掉线而空手。`SCORERS` 注册表里 `keyword_prefilter+llm`(frontier 用)改直接指向纯 keyword 实现,**不再共享** `llm` 那个真实现——frontier 一次产出 754 条(vs ai_health 147 + quant_factor 15 = 162 条),真接进来会让日常 LLM 调用量涨 5.6 倍,而 frontier 官方源信号本来就强、关键词打分够用,ADR-003 原话点名"相关性偏弱"的只有 health/quant 两个主题。`pipeline.run_topic()` 新增 `scorer_overrides` 参数、`runner.run_all()` 里按 env 是否配置构造真实/桩 `LlmScorer` 并注入——之所以不能像 fetcher 那样走纯无状态注册表,是因为真实打分需要运行时才知道的 cache 路径(挂在 `output_dir` 下)和跨主题共享的预算计数器,这两个 `radar.scorers.get_scorer()` 的静态单例拿不到。
 原因: 真花钱的调用必须能就低不就高——宁可某天判定失败退回关键词,也不能让一个主题因为 LLM 掉线而空产出(与 digest 层"never raises"哲学一致,ADR-006/007 已验证过这个模式)。范围收窄到 ai_health/quant_factor 是显式用户决策(之前问过,选了"只两个主题",非我自行决定)。
 代价: 本地无法验证真实判定质量——DeepSeek key 只在 GitHub Secrets 里,不下沉到本地环境,真实效果要等下次 Actions 跑完看 `score_reason` 是否变成自然语言(而非 `hits: x, y` 关键词格式)才能确认。budget=200/次运行是硬编码常量非配置项,ai_health+quant_factor 冷启动共 162 条勉强够,如果这两个主题源增多导致单次新条目超预算,多出的会静默退回关键词分(不报错,但需要人工发现)。
+
+### ADR-010: fetcher 统一用真实浏览器 UA + Accept 头,不再用机器人 UA
+日期: 2026-07-02
+决策: `radar/fetchers/feed.py` 与 `scrape.py` 的 `USER_AGENT` 从 `Mozilla/5.0 (compatible; mta-news-radar/0.1)` 改为主流桌面 Chrome UA,并加 `Accept`(feed 声明 rss/atom/xml,scrape 声明 html)+ `Accept-Language` 头,抽成 `BROWSER_HEADERS`。这是把之前散落在 topics.yaml 里一堆源的 `status=verify`/`403` note(Endpoints News 明确写「需带浏览器 UA」、多个 Substack、MIT Press)的根因一次性解决——绝大多数 403 是 Cloudflare/WAF 的「拦非浏览器客户端」规则,机器人味 UA 撞墙。配套 topics.yaml 换源:Substack 的 `*.substack.com` feed 换到自有域名(`www.quantseeker.com/feed`、`jack-clark.net/feed/`)绕开 Substack 边缘 IP 拦截;Cognitive Revolution 换成 Megaphone 真音频 feed;xAI(x.ai/news/rss.xml 实测 404,RSS 不存在)与 MIT Press(Cloudflare 硬拦,浏览器 UA 仍 403)显式 `enabled:false`,避免长期红失败噪声。
+原因: 一个 UA 常量改动比逐源试错省事,且对所有现有+未来源都生效(依赖反转:HTTP 策略属 fetcher 层,不该泄漏到每条源配置)。换自有域名而非靠 UA 硬扛 Substack,是因为 `*.substack.com` 的 403 疑似 IP 段级(GitHub Actions IP 被 Substack 拦),UA 修不了,自有域名(CNAME 到 Substack 但走不同边缘)实测能过。
+代价: 浏览器 UA 是「伪装」,若某站将来按更强指纹(TLS/JA3、header 顺序)反爬仍会掉线,requests 层伪装能力有限。Nature 两源(nbt/natmachintell.rss)本地网络仍不可达(Max retries),但线上 GitHub Actions 一直 `ok`,属本地环境限制非代码问题,保持 `status=verify` 不动。xAI/MIT Press 禁用是止血非解决,要接得另走 scrape 或第三方桥。
