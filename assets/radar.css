@@ -77,8 +77,8 @@ body {
 .nav-item .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--pill-failed); flex: 0 0 auto; }
 .sidebar-foot { padding: 14px 8px 0; font-size: 0.72rem; color: var(--sidebar-muted); border-top: 1px solid rgba(255,255,255,0.08); margin-top: 12px; }
 
-/* Content */
-.content { padding: 28px 32px 64px; max-width: 820px; }
+/* Content — centered column so wide screens don't leave a lopsided blank right side */
+.content { padding: 28px 32px 64px; max-width: 900px; width: 100%; margin: 0 auto; }
 .nav-toggle {
   display: none;
   margin-bottom: 14px;
@@ -112,27 +112,65 @@ body {
 .health-row .hstatus.skipped { color: var(--pill-skip); }
 .health-row .herror { color: var(--faint); margin-left: auto; text-align: right; }
 
-/* News cards */
-.news-list { display: flex; flex-direction: column; gap: 10px; }
+/* News cards — uniform structure: title / subtitle / summary / footer meta */
+.news-list { display: flex; flex-direction: column; gap: 12px; }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 15px 18px;
+  padding: 16px 20px 12px;
   box-shadow: var(--shadow);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card:hover {
+  border-color: #cfcfc2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(0, 0, 0, 0.07);
 }
 .card-title {
   display: block;
   font-size: 1.05rem;
   font-weight: 650;
-  line-height: 1.35;
+  line-height: 1.4;
   color: var(--text);
   text-decoration: none;
-  margin-bottom: 7px;
+  margin-bottom: 4px;
 }
 .card-title:hover { color: var(--accent); }
-.card-subtitle { font-size: 0.78rem; color: var(--faint); margin: -2px 0 7px; line-height: 1.4; }
-.card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 0.76rem; color: var(--muted); }
+.card-subtitle { font-size: 0.78rem; color: var(--faint); margin: 0 0 4px; line-height: 1.4; }
+.card-summary {
+  margin: 6px 0 0;
+  font-size: 0.87rem;
+  line-height: 1.62;
+  color: #56564e;
+}
+/* Long raw (undigested) summaries start collapsed; 展开全文 toggles */
+.card-summary.collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-expand {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 0 0;
+  cursor: pointer;
+}
+.card-expand:hover { text-decoration: underline; }
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid #f0f0e8;
+}
 .card-source { font-weight: 600; color: #44443e; }
 .card-sublabel { background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 0 6px; font-size: 0.72rem; }
 .card-audio { color: var(--accent); text-decoration: none; font-weight: 600; border: 1px solid var(--accent-soft); border-radius: 6px; padding: 0 7px; }
@@ -145,15 +183,6 @@ body {
   padding: 1px 8px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-}
-.card-summary {
-  margin: 9px 0 0;
-  font-size: 0.86rem;
-  color: #56564e;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* Load more */

@@ -6,7 +6,7 @@
     <title>个人多领域雷达</title>
     <meta name="description" content="按主题分轨的个人资讯雷达:前沿大模型、AI-Health、量化因子、新书、播客、实体雷达。" />
     <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./assets/radar.css?v=2" />
+    <link rel="stylesheet" href="./assets/radar.css?v=3" />
   </head>
   <body>
     <div class="layout" id="layout">
@@ -40,6 +40,8 @@
       <article class="card">
         <a class="card-title" target="_blank" rel="noopener noreferrer"></a>
         <div class="card-subtitle" hidden></div>
+        <p class="card-summary" hidden></p>
+        <button class="card-expand" type="button" hidden>展开全文</button>
         <div class="card-meta">
           <span class="card-source"></span>
           <span class="card-sublabel" hidden></span>
@@ -47,10 +49,9 @@
           <a class="card-audio" target="_blank" rel="noopener noreferrer" hidden>▶ 收听</a>
           <span class="card-score" hidden></span>
         </div>
-        <p class="card-summary" hidden></p>
       </article>
     </template>
 
-    <script src="./assets/radar.js?v=2" defer></script>
+    <script src="./assets/radar.js?v=3" defer></script>
   </body>
 </html>

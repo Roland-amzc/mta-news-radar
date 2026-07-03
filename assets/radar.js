@@ -50,6 +50,8 @@
   function cleanSummary(s) {
     var t = htmlToText(s);
     if (!t) return t;
+    // arXiv feeds prefix every abstract with "arXiv:xxxx.xxxxx Announce Type: new Abstract: "
+    t = t.replace(/^arXiv:\S+\s+Announce Type:\s*\S+\s*Abstract:\s*/i, "");
     var cut = t.length;
     var ts = t.search(/\s\d{1,2}:\d{2}(?::\d{2})?\b/);
     if (ts > 20) cut = Math.min(cut, ts);
@@ -185,9 +187,23 @@
       score.hidden = false;
     }
     var summary = node.querySelector(".card-summary");
-    // summary_zh is already a clean digest -> just strip any markup; else clean the raw feed text
+    var expand = node.querySelector(".card-expand");
+    // summary_zh is already a clean digest -> show it in full; else clean the raw feed text
     var text = item.summary_zh ? htmlToText(item.summary_zh) : cleanSummary(item.summary);
-    if (text) { summary.textContent = text; summary.hidden = false; }
+    if (text) {
+      summary.textContent = text;
+      summary.hidden = false;
+      // digested zh summaries are short and always shown whole; only long raw
+      // originals start collapsed with an expand toggle
+      if (!item.summary_zh && text.length > 320) {
+        summary.classList.add("collapsed");
+        expand.hidden = false;
+        expand.addEventListener("click", function () {
+          var collapsed = summary.classList.toggle("collapsed");
+          expand.textContent = collapsed ? "展开全文" : "收起";
+        });
+      }
+    }
     return node;
   }
 
