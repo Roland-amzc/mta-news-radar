@@ -11,12 +11,24 @@ from radar.fetchers.base import entry_to_item
 from radar.models import Item, SourceHealth, SourceSpec, TopicSpec
 
 DEFAULT_TIMEOUT = 20  # seconds
-USER_AGENT = "Mozilla/5.0 (compatible; mta-news-radar/0.1)"
+# A real browser UA (not an obvious bot string): Substack (*.substack.com feeds),
+# MIT Press, Endpoints News and similar Cloudflare/WAF-fronted hosts 403 the old
+# "mta-news-radar/0.1" bot UA. A mainstream desktop UA + feed-friendly Accept
+# headers get through the common "block non-browser clients" rule.
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+)
+BROWSER_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8",
+}
 
 
 def _build_session() -> requests.Session:
     session = requests.Session()
-    session.headers.update({"User-Agent": USER_AGENT})
+    session.headers.update(BROWSER_HEADERS)
     return session
 
 

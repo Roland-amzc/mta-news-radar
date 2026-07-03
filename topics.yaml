@@ -73,7 +73,10 @@ topics:
         sub_label: model_release
         status: todo
         enabled: false        # scrape 已实现，但本源未核选择器，先禁用避免 ConfigError
-        note: 未找到可用 RSS（/blog/rss/ /blog/feed/ 404，/blog/rss.xml 400）。需抓取或找第三方桥。scrape 适配器已就绪(见 Anthropic News)，补 item_selector/title_selector 后把 enabled 改 true 即可接入。
+        note: >
+          无 RSS(/blog/rss/ /blog/feed/ 404,/blog/rss.xml 400)。2026-07-02 探测:直接 GET
+          /blog/ 返回 400(Meta 边缘拦截,即便带浏览器 UA),静态 scrape 拿不到页面。需无头浏览器
+          或第三方桥,暂缓。
       - name: DeepSeek 官博
         url: "https://api-docs.deepseek.com/news"
         type: scrape
@@ -81,14 +84,20 @@ topics:
         sub_label: model_release
         status: todo
         enabled: false        # scrape 已实现，但本源未核选择器，先禁用避免 ConfigError
-        note: feed 地址未知，需核验（官网/公众号为主，可能需抓取）。scrape 适配器已就绪(见 Anthropic News)，补选择器后把 enabled 改 true 即可接入。
+        note: >
+          2026-07-02 探测:api-docs.deepseek.com/news 及 /news/ 均 404,无静态新闻列表页。
+          DeepSeek 官方动态主要在公众号/X(@deepseek_ai),无可抓取的公开新闻页。暂缓,可考虑盯 X 账号。
       - name: xAI News
         url: "https://x.ai/news/rss.xml"
         type: rss
         tier: official
         sub_label: model_release
-        status: verify
-        note: 猜测地址，本机 403（Cloudflare）。需在部署环境确认是否存在 RSS。
+        status: todo
+        enabled: false   # 该地址 404（不存在 RSS）,GitHub Actions 与本机一致。禁用避免长期红失败
+        note: >
+          x.ai/news/rss.xml 实测 404（非 UA 问题,浏览器 UA 也 404,该 feed 不存在）。
+          xAI 官网无公开 RSS。要盯 xAI 只能走 scrape（抓 x.ai/news 页,scrape 适配器已就绪,
+          补 item_selector/title_selector 后改 enabled:true）或盯 @xai X 账号。先禁用。
       # --- arXiv（高频，关键词粗筛→LLM 精判）---
       - { name: "arXiv cs.CL", url: "http://export.arxiv.org/rss/cs.CL", type: arxiv, tier: official, sub_label: model_release, status: ok, prefilter: true }
       - { name: "arXiv cs.LG", url: "http://export.arxiv.org/rss/cs.LG", type: arxiv, tier: official, sub_label: model_release, status: ok, prefilter: true }
@@ -107,8 +116,24 @@ topics:
         sub_label: embodied
         status: todo
         note: 官网无 RSS（404）。建议走引擎现有 X/SocialData 路盯官方账号，或抓取 news 页。
-      - { name: "1X",                   url: "https://www.1x.tech/",                       type: scrape, handle: "@1x_tech",            tier: official, sub_label: embodied, status: todo, enabled: false, note: "无 RSS，需抓取/盯 X 账号。scrape 适配器已就绪(见 Anthropic News/宇树)，补选择器后 enabled 改 true" }
-      - { name: "Physical Intelligence (π)", url: "https://www.physicalintelligence.company/", type: scrape, handle: "@physical_int", tier: official, sub_label: embodied, status: todo, enabled: false, note: "无 RSS，研究博客需抓取。scrape 适配器已就绪，补选择器后 enabled 改 true" }
+      - { name: "1X",                   url: "https://www.1x.tech/",                       type: scrape, handle: "@1x_tech",            tier: official, sub_label: embodied, status: todo, enabled: false, note: "2026-07-02 探测:Next.js SPA(有 __NEXT_DATA__,列表由 JS 渲染),requests+CSS 选择器抓不到文章列表。静态 scrape 不适用,需无头浏览器或从 __NEXT_DATA__ JSON 解析(超出当前 ScrapeFetcher 能力),暂缓" }
+      - name: "Physical Intelligence (π)"
+        url: "https://www.physicalintelligence.company/"
+        type: scrape
+        handle: "@physical_int"
+        tier: official
+        sub_label: embodied
+        status: ok
+        enabled: true
+        item_selector: 'a[href^="/blog/"]'
+        title_selector: ".font-semibold"
+        date_selector: ".text-muted-foreground.shrink-0"
+        note: >
+          无 RSS,已接 scrape(2026-07-02 验证:首页 SSR 出 7 篇 blog 卡片,标题+日期均正确解析)。
+          ⚠️ 选择器锚在 Tailwind 工具类(.font-semibold/.text-muted-foreground.shrink-0)而非语义
+          标签——该站卡片全是 div 无 h/time 标签,只能用工具类,前端重构会让选择器失效(engine 标
+          status=failed)。72h 窗口下多数时候 0 条(PI 发文低频),有新文才现,与 Unitree/Anthropic
+          scrape 源行为一致。
       - name: 宇树 Unitree
         url: "https://www.unitree.com/news/"
         type: scrape
@@ -123,7 +148,7 @@ topics:
           国内厂商无英文 RSS，已接 scrape 适配器(2026-07-01 试点验证)。原
           url https://www.unitree.com/ 是产品导航首页无新闻列表，实际新闻页
           在 /news（302 跳转到 /news/，已改为直连 /news/ 避免重定向依赖）。
-      - { name: "智元 AgiBot",           url: "https://www.zhiyuan-robot.com/",             type: scrape, tier: official, sub_label: embodied, status: todo, enabled: false, note: "同上，国内厂商撞墙，暂缓。scrape 适配器已就绪，补选择器后 enabled 改 true" }
+      - { name: "智元 AgiBot",           url: "https://www.zhiyuan-robot.com/news",         type: scrape, tier: official, sub_label: embodied, status: todo, enabled: false, note: "2026-07-02 探测:/news 页 200 但新闻走 /News/Company 分类 + 分页(?page=N),文章链接非稳定 slug 模式,且卡片无机器可读日期,静态抓取会灌入全部历史条目污染 72h 窗口。国内厂商站结构复杂,暂缓" }
 
   # === 2. AI-Health：药物发现 + CDMO ======================================
   - id: ai_health
@@ -141,9 +166,21 @@ topics:
       - { name: FierceBiotech,               url: "https://www.fiercebiotech.com/rss/xml",     type: rss, tier: media,    status: ok }
       - { name: FiercePharma,                url: "https://www.fiercepharma.com/rss/xml",      type: rss, tier: media,    status: ok }
       - { name: STAT News,                   url: "https://www.statnews.com/feed/",            type: rss, tier: media,    status: ok }
-      - { name: Isomorphic Labs,  url: "https://www.isomorphiclabs.com/articles", type: scrape, tier: official, status: todo, enabled: false, note: "公司博客，RSS 未知，需核验/抓取。scrape 适配器已就绪(见 frontier/Anthropic News)，补选择器后 enabled 改 true" }
-      - { name: Recursion,        url: "https://www.recursion.com/news",          type: scrape, tier: official, status: todo, enabled: false, note: "RSS 未知。scrape 适配器已就绪，补选择器后 enabled 改 true" }
-      - { name: Insilico Medicine,url: "https://insilico.com/news",               type: scrape, tier: official, status: todo, enabled: false, note: "RSS 未知。scrape 适配器已就绪，补选择器后 enabled 改 true" }
+      - name: Isomorphic Labs
+        url: "https://www.isomorphiclabs.com/news"
+        type: scrape
+        tier: official
+        status: todo
+        enabled: false
+        # 备好的选择器(2026-07-02 实测可解析 20+ 篇):item_selector '.w-dyn-item' title_selector 'h3'
+        note: >
+          2026-07-02 探测:原 /articles 404,正确列表页是 /news(Webflow CMS,SSR)。选择器已验证
+          (item '.w-dyn-item' + title 'h3' 可解析 20+ 篇文章)。⚠️ 但卡片无机器可读日期,而
+          pipeline 对无日期条目一律保留(_within_window 返回 True),接入会把全部历史文章(可回溯到
+          2021)永久灌进 ai_health 的 1 周窗口,污染"本周"视图。故暂不 enable——待引擎支持无日期源
+          截断(如按列表顺序取 top-N),或改从文章详情页补日期后再接。
+      - { name: Recursion,        url: "https://www.recursion.com/news",          type: scrape, tier: official, status: todo, enabled: false, note: "2026-07-02 探测:请求超时/被拦(curl 返回 000),站点疑似强反爬或需 JS。静态 scrape 不可达,暂缓" }
+      - { name: Insilico Medicine,url: "https://insilico.com/news",               type: scrape, tier: official, status: todo, enabled: false, note: "2026-07-02 探测:/news 200 且 SSR,但卡片是指向 prnewswire/globenewswire 的外链新闻稿、无站内统一日期结构,抓取质量差(混入 2021-2022 旧稿)。同 Isomorphic 缺日期会污染 1 周窗口,暂缓" }
     note: ⚠️ 药明系(WuXi) 深度信息在 A股/H股公告(🟡)，暂缓，以后接公告适配器。
 
   # === 3. 量化因子研究 ====================================================
@@ -157,7 +194,7 @@ topics:
       - { name: "Quantocracy（聚合 ⭐⭐⭐）", url: "https://quantocracy.com/feed/",   type: rss,   tier: aggregator, status: ok }
       - { name: Alpha Architect,             url: "https://alphaarchitect.com/feed/", type: rss,   tier: media,      status: ok }
       - { name: Quantpedia,                  url: "https://quantpedia.com/feed/",     type: rss,   tier: media,      status: ok }
-      - { name: "QuantSeeker (substack)",    url: "https://quantseeker.substack.com/feed", type: rss, tier: self_media, status: ok }
+      - { name: "QuantSeeker",               url: "https://www.quantseeker.com/feed", type: rss, tier: self_media, status: ok, note: "改用自有域名 www.quantseeker.com（*.substack.com feed 会 403，自有域名不受 Substack 边缘 IP 拦截影响）" }
       - { name: "arXiv q-fin.PM", url: "http://export.arxiv.org/rss/q-fin.PM", type: arxiv, tier: official, status: ok }
       - { name: "arXiv q-fin.TR", url: "http://export.arxiv.org/rss/q-fin.TR", type: arxiv, tier: official, status: ok }
       - { name: "arXiv q-fin.ST", url: "http://export.arxiv.org/rss/q-fin.ST", type: arxiv, tier: official, status: ok }
@@ -173,7 +210,7 @@ topics:
     keywords: [book, 新书, 出版, "new release", author, 著作, edition, hardcover, "book review", 书评, memoir, 传记]
     sources:
       - { name: "O'Reilly Radar",      url: "https://www.oreilly.com/radar/feed/index.xml", type: rss, tier: official, status: ok }
-      - { name: MIT Press,             url: "https://mitpress.mit.edu/feed/",               type: rss, tier: official, status: verify, note: "本机 403(Cloudflare)，URL 大概率有效，部署环境确认" }
+      - { name: MIT Press,             url: "https://mitpress.mit.edu/feed/",               type: rss, tier: official, status: todo, enabled: false, note: "403(Cloudflare 硬拦,浏览器 UA 仍 403),非 UA 可解。禁用避免长期红失败。新书信号已由 O'Reilly/Five Books/MarginalRevolution/ACT 覆盖" }
       - { name: Five Books,            url: "https://fivebooks.com/feed/",                  type: rss, tier: media,    status: ok }
       - { name: Marginal Revolution,   url: "https://marginalrevolution.com/feed",          type: rss, tier: self_media, status: ok }
       - { name: Astral Codex Ten,      url: "https://www.astralcodexten.com/feed",          type: rss, tier: self_media, status: ok }
@@ -204,15 +241,19 @@ topics:
     sources:
       - { name: Dwarkesh Podcast,   host: "Dwarkesh Patel",          url: "https://www.dwarkesh.com/feed",                     type: podcast, tier: self_media, status: ok }
       - { name: Lex Fridman Podcast,host: "Lex Fridman",             url: "https://lexfridman.com/feed/podcast/",              type: podcast, tier: self_media, status: ok }
-      - { name: "Latent Space（播）",host: "swyx & Alessio",          url: "https://api.substack.com/feed/podcast/1084089.rss", type: podcast, tier: self_media, status: ok }
+      - { name: "Latent Space（播）",host: "swyx & Alessio",          url: "https://api.substack.com/feed/podcast/1084089.rss", type: podcast, tier: self_media, status: ok, note: "Substack 音频 feed;GitHub Actions IP 曾被 403,已靠浏览器 UA/Accept 头修复(见 radar/fetchers/feed.py)。若仍失败,回退用 www.latent.space/feed(写作 feed 含少量音频 enclosure)" }
       - { name: "No Priors",        host: "Sarah Guo & Elad Gil",    url: "https://feeds.megaphone.fm/nopriors",               type: podcast, tier: self_media, status: ok }
       - name: The Cognitive Revolution
         host: "Nathan Labenz"
-        url: "https://cognitiverevolution.substack.com/feed"
+        url: "https://feeds.megaphone.fm/RINTP3108857801"
         type: podcast
         tier: self_media
-        status: verify
-        note: substack(写) feed 已实测 ok；音频播客 feed 候选 https://feeds.megaphone.fm/RINTP3108857801 需确认归属。
+        status: ok
+        note: >
+          改用 Megaphone 音频播客 feed（原 cognitiverevolution.substack.com/feed
+          是 *.substack.com 写作 feed，会 403 且无音频 enclosure）。Megaphone 归属已
+          核验：channel title = "The Cognitive Revolution" | AI Builders...，含 audio/mpeg
+          enclosure，适配 podcast 类型的 audio_url。
       # 备选
       - { name: "TWIML (备选)", host: "Sam Charrington", url: "https://twimlai.com/feed/",            type: podcast, tier: self_media, status: ok, enabled: false }
       - { name: "MLST (备选)",  host: "Tim Scarfe",      url: "https://anchor.fm/s/1e4a0eac/podcast/rss", type: podcast, tier: self_media, status: ok, enabled: false }
@@ -249,7 +290,7 @@ topics:
       - { name: "Lilian Weng",        url: "https://lilianweng.github.io/index.xml",     type: rss, tier: entity, status: ok }
       - { name: "Sebastian Raschka",  url: "https://magazine.sebastianraschka.com/feed", type: rss, tier: entity, status: ok, note: "另有 https://sebastianraschka.com/rss_feed.xml 亦可" }
       - { name: "Andrej Karpathy",    url: "https://karpathy.bearblog.dev/feed/",        type: rss, tier: entity, status: ok }
-      - { name: "Jack Clark (Import AI)", url: "https://importai.substack.com/feed",     type: rss, tier: entity, status: ok, note: "另有 https://jack-clark.net/feed/" }
+      - { name: "Jack Clark (Import AI)", url: "https://jack-clark.net/feed/",           type: rss, tier: entity, status: ok, note: "改用自有域名 jack-clark.net（importai.substack.com/feed 会 403）" }
       - { name: "Dylan Patel (SemiAnalysis)", url: "https://www.semianalysis.com/feed",  type: rss, tier: entity, status: ok }
       # --- 盯 YouTube 频道（channel RSS）---
       - { name: "AI Explained",       url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCNJ1Ymd5yFuUPtn21xtRbbw", type: youtube, tier: entity, status: ok }

@@ -18,12 +18,22 @@ from radar.fetchers.base import parse_published
 from radar.models import Item, SourceHealth, SourceSpec, TopicSpec, make_item_id
 
 DEFAULT_TIMEOUT = 20  # seconds
-USER_AGENT = "Mozilla/5.0 (compatible; mta-news-radar/0.1)"
+# Real browser UA + HTML Accept: scraped news pages are often behind the same
+# "block non-browser clients" rule as the feed hosts (see feed.py).
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+)
+BROWSER_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8",
+}
 
 
 def _build_session() -> requests.Session:
     session = requests.Session()
-    session.headers.update({"User-Agent": USER_AGENT})
+    session.headers.update(BROWSER_HEADERS)
     return session
 
 
