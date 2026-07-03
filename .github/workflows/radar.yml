@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "0 22 * * *" # daily, 22:00 UTC (~06:00 Beijing)
   workflow_dispatch:
+  push:
+    branches: [master] # push to master rebuilds + redeploys immediately
+    # data/ is gitignored (never in a push); the workflow deploys to Pages via
+    # artifact and does not push back to the repo, so there is no trigger loop.
 
 permissions:
   contents: read
@@ -49,6 +53,13 @@ jobs:
 
       - name: Run radar engine
         run: python run_radar.py
+
+      - name: Check source health
+        # Surfaces any enabled source that came back status=failed as run
+        # annotations + a step-summary table. Never fails the build (transient
+        # feed errors must not block deploy); see scripts/check_source_health.py.
+        if: always()
+        run: python scripts/check_source_health.py --data-dir data
 
       - name: Stage site
         run: |
