@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 from radar.dedup import dedupe
@@ -12,6 +13,7 @@ from radar.scorers import get_scorer
 from radar.scorers.base import Scorer
 
 _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+MAX_FETCH_WORKERS = 8  # per-topic concurrency for network fetches
 
 
 def _should_skip(source: SourceSpec) -> str | None:
@@ -66,21 +68,39 @@ def run_topic(
     topic.scorer name, taking priority over the stateless registry default.
     """
 
-    pool: list[Item] = []
-    health: list[SourceHealth] = []
-    fetched_total = 0
-    fetched_count = 0
-
+    # Decide skip-vs-fetch in source order first: this keeps max_feeds semantics
+    # ("first N runnable sources") and the health record order deterministic,
+    # independent of which network fetch finishes first below.
+    plans: list[tuple[SourceSpec, bool, str | None]] = []  # (source, do_fetch, skip_reason)
+    runnable = 0
     for source in topic.sources:
         skip_reason = _should_skip(source)
         if skip_reason:
+            plans.append((source, False, skip_reason))
+        elif max_feeds is not None and runnable >= max_feeds:
+            plans.append((source, False, "max_feeds limit"))
+        else:
+            runnable += 1
+            plans.append((source, True, None))
+
+    fetch_sources = [src for src, do_fetch, _ in plans if do_fetch]
+    fetched: dict[int, tuple[list[Item], SourceHealth]] = {}
+    if fetch_sources:
+        def _do(src: SourceSpec) -> tuple[list[Item], SourceHealth]:
+            return get_fetcher(src.type).fetch(src, topic, now)  # fetchers never raise
+
+        with ThreadPoolExecutor(max_workers=min(MAX_FETCH_WORKERS, len(fetch_sources))) as pool_ex:
+            for src, res in zip(fetch_sources, pool_ex.map(_do, fetch_sources)):
+                fetched[id(src)] = res
+
+    pool: list[Item] = []
+    health: list[SourceHealth] = []
+    fetched_total = 0
+    for source, do_fetch, skip_reason in plans:
+        if not do_fetch:
             health.append(skipped_health(source, skip_reason))
             continue
-        if max_feeds is not None and fetched_count >= max_feeds:
-            health.append(skipped_health(source, "max_feeds limit"))
-            continue
-        fetched_count += 1
-        items, src_health = get_fetcher(source.type).fetch(source, topic, now)
+        items, src_health = fetched[id(source)]
         health.append(src_health)
         fetched_total += src_health.fetched
         if source.prefilter:
