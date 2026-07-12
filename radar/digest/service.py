@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+
 from radar.digest.base import Digester, DigestConfig, DigestRequest
 from radar.digest.cache import DigestCache
 from radar.models import TopicResult, TopicSpec
+
+logger = logging.getLogger(__name__)
 
 
 class DigestService:
@@ -49,7 +53,7 @@ class DigestService:
                         item.title_zh, item.summary_zh = out.title_zh, out.summary_zh
         except Exception as exc:  # digest is best-effort; never break the topic
             result.stats["digest_error"] = 1
-            print(f"[digest] {result.topic_id} error: {exc}")
+            logger.warning("%s digest error: %s", result.topic_id, exc)
 
         result.stats["digest_targets"] = len(targets)
         result.stats["from_cache"] = from_cache

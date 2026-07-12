@@ -15,9 +15,10 @@ response parsing fails, so a missing/broken key never breaks a topic's output.
 from __future__ import annotations
 
 import json
-import os
-from pathlib import Path
+from typing import Any
 
+from radar.jsoncache import JsonKVCache
+from radar.llm_client import build_openai_client, read_openai_env
 from radar.models import Item, TopicSpec
 from radar.scorers.keyword import KeywordScorer
 
@@ -63,36 +64,21 @@ def parse_relevance_json(raw: str | None) -> tuple[float, str] | None:
     return round(score, 4), reason
 
 
-class RelevanceCache:
-    """Persistent {item_id: (score, reason)} cache, mirrors digest.cache.DigestCache."""
+class RelevanceCache(JsonKVCache[tuple]):
+    """Persistent {item_id: (score, reason)} cache, on the shared JsonKVCache base."""
 
-    def __init__(self, path: Path) -> None:
-        self.path = Path(path)
-        self._store: dict[str, tuple[float, str]] = {}
+    def _serialize(self, value: tuple) -> dict[str, Any]:
+        return {"score": value[0], "reason": value[1]}
 
-    def load(self) -> "RelevanceCache":
+    def _deserialize(self, raw: dict[str, Any]) -> tuple | None:
+        if "score" not in raw:
+            return None
         try:
-            raw = json.loads(self.path.read_text(encoding="utf-8"))
-        except (FileNotFoundError, ValueError):
-            raw = {}
-        for item_id, val in (raw or {}).items():
-            if isinstance(val, dict) and "score" in val:
-                try:
-                    self._store[item_id] = (float(val["score"]), str(val.get("reason", "")))
-                except (TypeError, ValueError):
-                    continue
-        return self
+            return (float(raw["score"]), str(raw.get("reason", "")))
+        except (TypeError, ValueError):
+            return None
 
-    def save(self) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {k: {"score": v[0], "reason": v[1]} for k, v in self._store.items()}
-        self.path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-
-    def get(self, item_id: str) -> tuple[float, str] | None:
-        return self._store.get(item_id)
-
+    # Kept for the (score, reason) call-site ergonomics of the scorer/tests.
     def put(self, item_id: str, score: float, reason: str) -> None:
         self._store[item_id] = (score, reason)
 
@@ -100,14 +86,11 @@ class RelevanceCache:
 def build_relevance_client():
     """Return an OpenAI-compatible (client, model) pair from env, or None if unconfigured."""
 
-    api_key = os.environ.get("DIGEST_API_KEY")
-    base_url = os.environ.get("DIGEST_BASE_URL")
-    model = os.environ.get("DIGEST_MODEL")
-    if not (api_key and base_url and model):
+    env = read_openai_env()
+    if env is None:
         return None
-    from openai import OpenAI  # lazy
-
-    return OpenAI(api_key=api_key, base_url=base_url), model
+    api_key, base_url, model = env
+    return build_openai_client(api_key, base_url), model
 
 
 class LlmScorer:

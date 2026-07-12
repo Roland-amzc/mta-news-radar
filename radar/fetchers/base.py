@@ -6,9 +6,51 @@ import calendar
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 
+import requests
 from dateutil import parser as dtparser
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from radar.models import Item, SourceHealth, SourceSpec, TopicSpec, make_item_id
+
+DEFAULT_TIMEOUT = 20  # seconds
+# A real browser UA (not an obvious bot string): Substack (*.substack.com feeds),
+# MIT Press, Endpoints News and similar Cloudflare/WAF-fronted hosts 403 the old
+# "mta-news-radar/0.1" bot UA. A mainstream desktop UA + a matching Accept header
+# gets through the common "block non-browser clients" rule. HTTP policy lives in
+# the fetcher layer (ADR-010), not per-source config — so it lives here, once,
+# shared by every fetcher rather than copied per file.
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+)
+ACCEPT_LANGUAGE = "en-US,en;q=0.9,zh-CN;q=0.8"
+# Content-type-specific Accept values (feeds vs scraped HTML pages).
+FEED_ACCEPT = "application/rss+xml, application/atom+xml, application/xml, text/xml, */*;q=0.8"
+HTML_ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+
+def build_session(accept: str) -> requests.Session:
+    """A requests session with browser headers + a small retry/backoff on GET.
+
+    Retries smooth over transient 5xx / connection blips (e.g. Nature's
+    intermittent unavailability); a genuinely dead source still fails, just
+    after a couple of quick backed-off attempts.
+    """
+
+    session = requests.Session()
+    session.headers.update(
+        {"User-Agent": USER_AGENT, "Accept": accept, "Accept-Language": ACCEPT_LANGUAGE}
+    )
+    retry = Retry(
+        total=2,
+        backoff_factor=0.5,
+        status_forcelist=(429, 500, 502, 503, 504),
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
 
 
 class Fetcher(Protocol):

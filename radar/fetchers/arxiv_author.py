@@ -1,6 +1,6 @@
 """ArxivAuthorFetcher: anchor on an arXiv author identifier to avoid name clashes.
 
-Uses the author's atom feed (http://arxiv.org/a/<author_id>.atom) so results are
+Uses the author's atom feed (https://arxiv.org/a/<author_id>.atom) so results are
 tied to a unique author id, not a name (e.g. 姚顺宇 vs 姚顺雨 / Shunyu Yao).
 """
 
@@ -27,5 +27,5 @@ class ArxivAuthorFetcher:
                 source_name=source.name, type=source.type, status="failed",
                 error="missing author_id",
             )
-        url = f"http://arxiv.org/a/{author_id}.atom"
+        url = f"https://arxiv.org/a/{author_id}.atom"
         return self._feed.fetch_url(url, source, topic, now)

@@ -13,10 +13,14 @@ Provider selection (in priority order), all via environment variables:
 
 from __future__ import annotations
 
+import logging
 import os
 
 from radar.digest.base import DigestConfig, Digester, DigestOutput, DigestRequest
 from radar.digest.noop import NoopDigester
+from radar.llm_client import read_openai_env
+
+logger = logging.getLogger(__name__)
 
 # base_url / model presets for common OpenAI-compatible providers (reference).
 PROVIDER_PRESETS: dict[str, dict[str, str]] = {
@@ -36,26 +40,25 @@ def build_digester(config: DigestConfig) -> Digester:
     """Pick a Digester from env. OpenAI-compatible first, then Anthropic, else Noop."""
 
     if os.environ.get("DIGEST_ENABLED", "1") == "0":
-        print("[digest] DIGEST_ENABLED=0 -> skipping digest")
+        logger.info("DIGEST_ENABLED=0 -> skipping digest")
         return NoopDigester()
 
-    api_key = os.environ.get("DIGEST_API_KEY")
-    base_url = os.environ.get("DIGEST_BASE_URL")
-    model = os.environ.get("DIGEST_MODEL")
-    if api_key and base_url and model:
+    env = read_openai_env()
+    if env is not None:
         from radar.digest.openai_compat import OpenAICompatibleDigester  # lazy
 
-        print(f"[digest] OpenAI-compatible provider: {base_url} ({model})")
+        api_key, base_url, model = env
+        logger.info("OpenAI-compatible provider: %s (%s)", base_url, model)
         return OpenAICompatibleDigester(config, api_key=api_key, base_url=base_url, model=model)
 
     if os.environ.get("ANTHROPIC_API_KEY"):
         from radar.digest.claude import ClaudeDigester  # lazy
 
-        print(f"[digest] Anthropic API: {config.model}")
+        logger.info("Anthropic API: %s", config.model)
         return ClaudeDigester(config)
 
-    print(
-        "[digest] no provider configured -> skipping digest "
+    logger.info(
+        "no provider configured -> skipping digest "
         "(set DIGEST_API_KEY/DIGEST_BASE_URL/DIGEST_MODEL, or ANTHROPIC_API_KEY)"
     )
     return NoopDigester()

@@ -10,6 +10,7 @@ Examples:
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,6 +31,9 @@ def _parse_now(value: str | None) -> datetime:
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(
+        level=logging.INFO, format="%(levelname)s %(name)s: %(message)s"
+    )
     parser = argparse.ArgumentParser(description="Multi-topic news radar engine")
     parser.add_argument("--config", default="topics.yaml", help="path to topics.yaml")
     parser.add_argument("--output-dir", default="data", help="output directory")
